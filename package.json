@@ -1,0 +1,45 @@
+{
+  "name": "poojaro-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "POOJARO — Every Ritual. Everything You Need. Premium Puja Samagri and ritual kits.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "seed:reset": "node scripts/reset-store.mjs",
+    "verify": "tsx scripts/verify-store.mts"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.454.0",
+    "motion": "^11.15.0",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^15.1.6",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.7.3"
+  },
+  "optionalDependencies": {
+    "firebase-admin": "^13.0.2",
+    "razorpay": "^2.9.5"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}

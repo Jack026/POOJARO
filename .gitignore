@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# Local demo datastore — regenerated from seed on first boot.
+.data/
+
+# QA artefact from `node scripts/prepare-images.mjs --sheet`
+contact-sheet.png
