@@ -11,6 +11,7 @@ import {
   canTransition,
 } from '@/lib/domain/orders';
 import { formatMoney } from '@/lib/format';
+import { resolveImageUrl } from '@/lib/photos';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -451,11 +452,26 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                   {order.items.map((item, idx) => (
                     <tr key={idx} className="hover:bg-sand-soft/10">
                       <td className="p-4">
-                        <div className="font-semibold text-charcoal">{item.name}</div>
-                        {item.variantLabel && (
-                          <div className="text-xs text-gold font-medium">{item.variantLabel}</div>
-                        )}
-                        <div className="text-xs text-gray-400 font-mono">SKU: {item.sku}</div>
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={resolveImageUrl(item.image)}
+                              alt={item.name}
+                              className="w-12 h-12 object-cover rounded border border-sand shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-sand-soft flex items-center justify-center text-gray-400 shrink-0">
+                              <Package size={18} />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-charcoal">{item.name}</div>
+                            {item.variantLabel && (
+                              <div className="text-xs text-gold font-medium">{item.variantLabel}</div>
+                            )}
+                            <div className="text-xs text-gray-400 font-mono">SKU: {item.sku}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="p-4 text-center text-gray-600">{formatMoney(item.unitPrice)}</td>
                       <td className="p-4 text-center font-bold text-charcoal">{item.qty}</td>

@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/cn';
 import { EASE_OUT_SOFT } from '@/lib/motion';
+import { resolveImageUrl } from '@/lib/photos';
+import { PeacockSignature } from '@/components/peacock';
 
 interface Props {
   occasions: Occasion[];
@@ -290,7 +292,7 @@ function RecommendationCard({
           {image && (
             <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-sand-soft/50">
               <Image
-                src={image.url}
+                src={resolveImageUrl(image.url)}
                 alt={image.alt ?? rec.product.name}
                 fill
                 className="object-cover"
@@ -350,7 +352,7 @@ function RecommendationCard({
                   {addonImage && (
                     <div className="relative w-12 h-12 shrink-0 rounded-md overflow-hidden bg-sand-soft/60">
                       <Image
-                        src={addonImage.url}
+                        src={resolveImageUrl(addonImage.url)}
                         alt={addonImage.alt ?? addon.name}
                         fill
                         className="object-cover"
@@ -368,6 +370,16 @@ function RecommendationCard({
           </div>
         </div>
       )}
+
+      {/* Handcrafted recommendation seal */}
+      <div className="pt-8 pb-2 flex justify-center">
+        <PeacockSignature
+          variant="henna-on-light"
+          layout="vertical"
+          size={100}
+          className="opacity-75 hover:opacity-100 transition-opacity"
+        />
+      </div>
     </div>
   );
 }

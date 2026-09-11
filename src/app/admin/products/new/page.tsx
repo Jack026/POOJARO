@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import type { Category, Occasion, Festival, KitContent, ProductImage } from '@/lib/data/types';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -218,13 +219,18 @@ export default function NewProductPage() {
             </div>
             <div className="space-y-4">
               {images.map((img, idx) => (
-                <div key={idx} className="flex gap-4 items-start">
+                <div key={idx} className="flex gap-4 items-center bg-[#FAF8F3] p-3 rounded-lg border border-[#E8DDCA]">
+                  {img.url && (
+                    <div className="w-16 h-16 rounded overflow-hidden border border-[#E8DDCA] bg-white shrink-0">
+                      <img src={resolveImageUrl(img.url)} alt={img.alt || 'Preview'} className="w-full h-full object-cover" />
+                    </div>
+                  )}
                   <div className="flex-1">
-                    <input type="url" placeholder="Image URL" required value={img.url} onChange={e => handleImageChange(idx, 'url', e.target.value)} className="w-full border border-[#E8DDCA] rounded-md px-3 py-2 focus:outline-none focus:border-[#B78332] mb-2" />
-                    <input type="text" placeholder="Alt text" value={img.alt} onChange={e => handleImageChange(idx, 'alt', e.target.value)} className="w-full border border-[#E8DDCA] rounded-md px-3 py-2 focus:outline-none focus:border-[#B78332]" />
+                    <input type="text" placeholder="Image URL or photo key (e.g. /images/kit-ganesh-1024.webp)" required value={img.url} onChange={e => handleImageChange(idx, 'url', e.target.value)} className="w-full border border-[#E8DDCA] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#B78332] mb-2" />
+                    <input type="text" placeholder="Alt text" value={img.alt} onChange={e => handleImageChange(idx, 'alt', e.target.value)} className="w-full border border-[#E8DDCA] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#B78332]" />
                   </div>
                   {images.length > 1 && (
-                    <button type="button" onClick={() => removeImage(idx)} className="text-red-500 p-2 mt-1 hover:bg-red-50 rounded-md">
+                    <button type="button" onClick={() => removeImage(idx)} className="text-red-500 p-2 hover:bg-red-50 rounded-md">
                       Remove
                     </button>
                   )}

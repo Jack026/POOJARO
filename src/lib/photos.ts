@@ -533,10 +533,36 @@ export const PHOTOS: Record<string, PhotoAsset> = {
 
 export type PhotoKey = keyof typeof PHOTOS;
 
+export function normalizePhotoKey(key: string): string {
+  if (!key) return '';
+  return key
+    .replace(/^\/?images\//, '')
+    .replace(/\.(webp|jpg|jpeg|png)$/i, '')
+    .replace(/-\d+$/, '');
+}
+
 export function photo(key: string): PhotoAsset | null {
-  return PHOTOS[key] ?? null;
+  if (!key) return null;
+  if (PHOTOS[key]) return PHOTOS[key];
+  const normalized = normalizePhotoKey(key);
+  if (PHOTOS[normalized]) return PHOTOS[normalized];
+  return null;
 }
 
 export function isKnownPhoto(key: string): key is PhotoKey {
-  return Object.prototype.hasOwnProperty.call(PHOTOS, key);
+  if (!key) return false;
+  if (Object.prototype.hasOwnProperty.call(PHOTOS, key)) return true;
+  const normalized = normalizePhotoKey(key);
+  return Object.prototype.hasOwnProperty.call(PHOTOS, normalized);
 }
+
+export function resolveImageUrl(input?: string | null): string {
+  if (!input) return '';
+  const asset = photo(input);
+  if (asset) return asset.src;
+  if (input.startsWith('/') || input.startsWith('http://') || input.startsWith('https://')) {
+    return input;
+  }
+  return `/images/${input}.webp`;
+}
+

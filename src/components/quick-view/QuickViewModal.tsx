@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Heart, ShoppingBag, ArrowRight, Check, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import { useQuickViewStore } from './quick-view-store';
 import { useCartStore } from '@/components/cart/cart-store';
 import { useWishlistStore } from '@/components/wishlist/wishlist-store';
@@ -15,7 +16,7 @@ import { Badge } from '@/components/ui/Badge';
 import { QtyStepper } from '@/components/ui/QtyStepper';
 import { buttonClasses } from '@/components/ui/button-styles';
 import { productPricing, stockState } from '@/lib/domain/product';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 import type { Product, ProductVariant } from '@/lib/data/types';
 
 export function QuickViewModal() {
@@ -43,7 +44,8 @@ export function QuickViewModal() {
   const stock = stockState(product, selectedVariant);
   const isWishlisted = isInWishlist(product.id);
 
-  const primaryPhotoKey = product.images[0]?.url.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+  const image = product.images[0];
+  const primaryPhotoKey = image?.url ? normalizePhotoKey(image.url) : '';
   const hasPhoto = isKnownPhoto(primaryPhotoKey);
 
   const handleAddToCart = async (openDrawer = false) => {
@@ -79,7 +81,16 @@ export function QuickViewModal() {
           <div className="relative w-full h-full rounded-lg overflow-hidden flex items-center justify-center">
             {hasPhoto ? (
               <Photo
-                name={primaryPhotoKey as any}
+                name={primaryPhotoKey}
+                sizes="(min-width: 768px) 360px, 90vw"
+                className="object-contain w-full h-full rounded-lg"
+              />
+            ) : image?.url ? (
+              <Image
+                src={resolveImageUrl(image.url)}
+                alt={image.alt || product.name}
+                width={image.width || 800}
+                height={image.height || 800}
                 sizes="(min-width: 768px) 360px, 90vw"
                 className="object-contain w-full h-full rounded-lg"
               />

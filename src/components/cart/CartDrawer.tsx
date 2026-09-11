@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, ArrowRight, Tag, X, Sparkles, AlertCircle, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import { useCartStore } from './cart-store';
 import { Sheet } from '@/components/ui/Sheet';
 import { Photo } from '@/components/ui/Photo';
@@ -10,7 +11,8 @@ import { QtyStepper } from '@/components/ui/QtyStepper';
 import { EmptyCart } from '@/components/ui/EmptyState';
 import { buttonClasses } from '@/components/ui/button-styles';
 import { formatMoney } from '@/lib/format';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
+import { PeacockSignature } from '@/components/peacock';
 
 export function CartDrawer() {
   const {
@@ -169,6 +171,15 @@ export function CartDrawer() {
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-brown-muted text-center">
                 <span>🔒 Secure 256-bit Checkout • Pan-India Delivery</span>
               </div>
+
+              <div className="pt-2 flex justify-center opacity-85">
+                <PeacockSignature
+                  variant="henna-on-light"
+                  layout="horizontal"
+                  size={120}
+                  showTagline={false}
+                />
+              </div>
             </div>
           </div>
         ) : null
@@ -224,7 +235,7 @@ export function CartDrawer() {
           {/* Cart item lines */}
           <div className="divide-y divide-sand-deep/60">
             {pricedCart?.lines.map((line) => {
-              const photoKey = line.image?.url.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+              const photoKey = line.image?.url ? normalizePhotoKey(line.image.url) : '';
               const hasPhoto = isKnownPhoto(photoKey);
 
               return (
@@ -232,7 +243,16 @@ export function CartDrawer() {
                   {/* Item Image */}
                   <div className="relative w-16 h-16 rounded-md overflow-hidden bg-sand-soft shrink-0 border border-sand-deep/50">
                     {hasPhoto ? (
-                      <Photo name={photoKey as any} sizes="64px" className="object-cover w-full h-full" />
+                      <Photo name={photoKey} sizes="64px" className="object-cover w-full h-full" />
+                    ) : line.image?.url ? (
+                      <Image
+                        src={resolveImageUrl(line.image.url)}
+                        alt={line.image.alt || line.name}
+                        width={line.image.width || 200}
+                        height={line.image.height || 200}
+                        sizes="64px"
+                        className="object-cover w-full h-full"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs text-brown-muted">
                         <ShoppingBag className="w-5 h-5 text-gold" />

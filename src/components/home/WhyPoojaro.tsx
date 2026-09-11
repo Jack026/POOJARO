@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Sparkles, ShieldCheck, ScrollText, Truck } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { EASE_OUT_SOFT } from '@/lib/motion';
+import { PeacockSignature } from '@/components/peacock';
 
 const pillars = [
   {
@@ -62,6 +63,22 @@ export function WhyPoojaro() {
             );
           })}
         </div>
+
+        {/* Authenticity seal */}
+        <motion.div
+          className="mt-14 flex justify-center"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: reduced ? 0.01 : 0.6, ease: EASE_OUT_SOFT }}
+        >
+          <PeacockSignature
+            variant="henna-on-light"
+            layout="vertical"
+            size={110}
+            className="opacity-75 hover:opacity-100 transition-opacity"
+          />
+        </motion.div>
       </div>
     </section>
   );

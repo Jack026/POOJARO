@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/admin/AdminShell';
 import type { Occasion } from '@/lib/data/types';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default function OccasionsPage() {
   const [occasions, setOccasions] = useState<Occasion[]>([]);
@@ -140,7 +141,7 @@ export default function OccasionsPage() {
               <div key={occ.id} className="bg-white rounded-lg shadow-sm border border-[#E8DDCA] overflow-hidden flex flex-col">
                 {occ.imageUrl ? (
                   <div className="h-40 bg-gray-200 w-full">
-                    <img src={occ.imageUrl} alt={occ.name} className="w-full h-full object-cover" />
+                    <img src={resolveImageUrl(occ.imageUrl)} alt={occ.name} className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="h-40 bg-[#E8DDCA] w-full flex items-center justify-center text-[#B78332]">

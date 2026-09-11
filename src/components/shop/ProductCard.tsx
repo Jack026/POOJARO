@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Eye, Heart, ShoppingBag, Check } from 'lucide-react';
 import { Photo } from '@/components/ui/Photo';
 import { Price } from '@/components/ui/Price';
@@ -12,7 +13,8 @@ import { useCartStore } from '@/components/cart/cart-store';
 import { useWishlistStore } from '@/components/wishlist/wishlist-store';
 import { useQuickViewStore } from '@/components/quick-view/quick-view-store';
 import { productPricing, stockState } from '@/lib/domain/product';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
+import { PeacockSingleFeather } from '@/components/peacock';
 import type { Product } from '@/lib/data/types';
 
 interface ProductCardProps {
@@ -32,7 +34,8 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   const stock = stockState(product);
   const isWishlisted = isInWishlist(product.id);
 
-  const primaryPhotoKey = product.images[0]?.url.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+  const image = product.images[0];
+  const primaryPhotoKey = image?.url ? normalizePhotoKey(image.url) : '';
   const hasPhoto = isKnownPhoto(primaryPhotoKey);
 
   const handleQuickAdd = async (e: React.MouseEvent) => {
@@ -61,13 +64,31 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
   return (
     <div className="group relative bg-ivory rounded-lg border border-sand-deep/50 hover:border-sand-deep hover:shadow-card transition-all duration-300 flex flex-col justify-between overflow-hidden">
-      <div>
+      {/* Subtle Henna Feather Watermark on Card Hover */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-6 -bottom-6 w-32 h-48 opacity-[0.05] group-hover:opacity-[0.16] transition-all duration-500 ease-out-soft transform rotate-12 group-hover:scale-105 z-0"
+      >
+        <PeacockSingleFeather variant="henna-on-light" className="w-full h-full" />
+      </div>
+
+      <div className="relative z-[1]">
         {/* Image Container */}
         <div className="relative aspect-square bg-sand-soft/40 overflow-hidden">
           <Link href={`/products/${product.slug}`} className="block w-full h-full">
             {hasPhoto ? (
               <Photo
-                name={primaryPhotoKey as any}
+                name={primaryPhotoKey}
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                priority={priority}
+                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out-soft"
+              />
+            ) : image?.url ? (
+              <Image
+                src={resolveImageUrl(image.url)}
+                alt={image.alt || product.name}
+                width={image.width || 800}
+                height={image.height || 800}
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                 priority={priority}
                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out-soft"

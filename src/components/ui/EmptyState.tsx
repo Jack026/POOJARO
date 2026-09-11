@@ -14,6 +14,7 @@ import { PackageOpen, SearchX, ShoppingBag, WifiOff } from 'lucide-react';
 
 import { cn } from '@/lib/cn';
 import { buttonClasses } from './button-styles';
+import { PeacockMini } from '@/components/peacock';
 
 export const EMPTY_COPY = {
   cart: {
@@ -85,7 +86,7 @@ export function EmptyCart({ className }: { className?: string }) {
   return (
     <EmptyState
       className={className}
-      icon={<ShoppingBag size={22} aria-hidden="true" />}
+      icon={<PeacockMini size={48} />}
       title={EMPTY_COPY.cart.title}
       body={EMPTY_COPY.cart.body}
       action={{ href: '/shop', label: 'Shop puja kits' }}

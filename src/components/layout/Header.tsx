@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, Search, ShoppingBag, Heart, User } from 'lucide-react';
 import { useCartStore } from '@/components/cart/cart-store';
 import { useWishlistStore } from '@/components/wishlist/wishlist-store';
+import { PeacockMini } from '@/components/peacock';
 import { MobileNav } from './MobileNav';
 import { SearchOverlay } from './SearchOverlay';
 
@@ -97,10 +98,18 @@ export function Header() {
 
           {/* Center: Logo */}
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-            <Link href="/" className="flex items-center gap-2 group" aria-label="POOJARO Home">
-              <span className={`font-display text-brown tracking-wide transition-all ${isScrolled ? 'text-xl' : 'text-2xl'}`}>
-                POOJARO
-              </span>
+            <Link href="/" className="flex items-center gap-2.5 group" aria-label="POOJARO Home">
+              <PeacockMini
+                variant="henna-on-light"
+                size={isScrolled ? 22 : 26}
+                className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 shrink-0"
+              />
+              <div className="flex flex-col items-center">
+                <span className={`font-display text-brown tracking-[0.14em] font-normal transition-all ${isScrolled ? 'text-xl' : 'text-2xl'}`}>
+                  POOJARO
+                </span>
+                <span className="h-[1.5px] w-6 bg-gold/40 rounded-full transition-all duration-300 group-hover:w-full group-hover:bg-gold-deep" />
+              </div>
             </Link>
           </div>
 

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Banner } from '@/lib/data/types';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -51,7 +52,7 @@ export default function BannersPage() {
                               <h3 className="font-medium text-charcoal">{banner.title || 'Untitled'}</h3>
                               <p className="text-sm text-gray-500">{banner.subtitle}</p>
                               {banner.imageUrl && (
-                                <img src={banner.imageUrl} alt={banner.title} className="h-16 object-cover mt-2 rounded" />
+                                <img src={resolveImageUrl(banner.imageUrl)} alt={banner.title} className="h-16 object-cover mt-2 rounded" />
                               )}
                             </div>
                             <div className="flex flex-col gap-2 items-end">

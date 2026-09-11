@@ -18,6 +18,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { AlertCircle, Check, Info, X } from 'lucide-react';
 
 import { cn } from '@/lib/cn';
+import { resolveImageUrl } from '@/lib/photos';
 import { transition } from '@/lib/motion';
 import { useToastStore, type Toast, type ToastTone } from './toast-store';
 
@@ -100,7 +101,7 @@ function ToastCard({ toast: item }: { toast: Toast }) {
       <div className="flex gap-3 p-3.5">
         {item.imageUrl ? (
           <Image
-            src={item.imageUrl}
+            src={resolveImageUrl(item.imageUrl)}
             alt={item.imageAlt ?? ''}
             width={56}
             height={56}

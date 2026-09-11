@@ -3,6 +3,7 @@
 import { motion } from 'motion/react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { EASE_OUT_SOFT } from '@/lib/motion';
+import { PeacockSignature } from '@/components/peacock';
 
 export function BrandStory() {
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -55,6 +56,21 @@ export function BrandStory() {
             >
               Whether you&apos;re welcoming new beginnings or celebrating abundance, we prepare the essentials of faith so you can focus on what matters most — the ritual itself.
             </motion.p>
+
+            <motion.div
+              className="pt-2 flex items-center"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: reduced ? 0.01 : 0.5, ease: EASE_OUT_SOFT, delay: 0.32 }}
+            >
+              <PeacockSignature
+                variant="henna-on-light"
+                layout="horizontal"
+                size={160}
+                className="opacity-90 hover:opacity-100 transition-opacity"
+              />
+            </motion.div>
           </div>
 
           {/* Editorial image */}

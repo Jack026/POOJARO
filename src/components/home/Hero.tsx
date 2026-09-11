@@ -14,6 +14,7 @@ import { ArrowRight, RefreshCw, ShieldCheck, Sparkles, Truck } from 'lucide-reac
 
 import { buttonClasses } from '@/components/ui/button-styles';
 import { Photo } from '@/components/ui/Photo';
+import { PeacockMaster } from '@/components/peacock';
 import { cn } from '@/lib/cn';
 import { EASE_OUT_QUART, EASE_OUT_SOFT } from '@/lib/motion';
 import { useHasFinePointer, useMediaQuery } from '@/hooks/useMediaQuery';
@@ -218,6 +219,21 @@ export function Hero() {
               animate={{ opacity: 1 }}
               transition={{ duration: reduced ? 0.01 : 1.4, ease: EASE_OUT_SOFT }}
             />
+
+            {/* Signature POOJARO Indian Mehendi Peacock Master Artwork */}
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute -inset-[28%] lg:-inset-[36%] -z-10 flex items-center justify-center overflow-visible"
+              style={parallax ? { x: glowX, y: glowY } : undefined}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 0.88, scale: 1 }}
+              transition={{ duration: reduced ? 0.01 : 1.6, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.2 }}
+            >
+              <PeacockMaster
+                variant="gold-on-dark"
+                className="w-[145%] h-[145%] max-w-none transform -rotate-6 md:-rotate-3 drop-shadow-[0_4px_24px_rgba(183,131,50,0.22)]"
+              />
+            </motion.div>
 
             {/* Slow gold orbit — a hairline ring that turns forever. Purely
                 decorative, and stilled for reduced motion. */}

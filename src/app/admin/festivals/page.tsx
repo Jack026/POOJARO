@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/admin/AdminShell';
 import type { Festival } from '@/lib/data/types';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default function FestivalsPage() {
   const [festivals, setFestivals] = useState<Festival[]>([]);
@@ -155,6 +156,7 @@ export default function FestivalsPage() {
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-[#E8DDCA] text-[#3A2118]">
+                  <th className="p-4 border-b border-[#E8DDCA]">Image</th>
                   <th className="p-4 border-b border-[#E8DDCA]">Name</th>
                   <th className="p-4 border-b border-[#E8DDCA]">Headline</th>
                   <th className="p-4 border-b border-[#E8DDCA]">Dates</th>
@@ -166,6 +168,13 @@ export default function FestivalsPage() {
               <tbody>
                 {festivals.map((fest) => (
                   <tr key={fest.id} className="hover:bg-white border-b border-[#E8DDCA]">
+                    <td className="p-4">
+                      {fest.imageUrl ? (
+                        <img src={resolveImageUrl(fest.imageUrl)} alt={fest.name} className="w-12 h-12 object-cover rounded" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">None</div>
+                      )}
+                    </td>
                     <td className="p-4 text-[#3A2118] font-medium">{fest.name}</td>
                     <td className="p-4 text-[#3A2118]">{fest.headline}</td>
                     <td className="p-4 text-[#3A2118]">

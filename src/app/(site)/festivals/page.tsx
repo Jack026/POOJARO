@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { getStore } from '@/lib/data';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { Photo } from '@/components/ui/Photo';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 
 export const metadata: Metadata = {
   title: 'Festival Collections | POOJARO',
@@ -43,13 +45,23 @@ export default async function FestivalsPage() {
               >
                 {festival.imageUrl && (
                   <div className="relative h-36 overflow-hidden bg-sand-soft/50">
-                    <Image
-                      src={festival.imageUrl}
-                      alt={festival.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    />
+                    {isKnownPhoto(normalizePhotoKey(festival.imageUrl)) ? (
+                      <Photo
+                        name={normalizePhotoKey(festival.imageUrl)}
+                        alt={festival.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      />
+                    ) : (
+                      <Image
+                        src={resolveImageUrl(festival.imageUrl)}
+                        alt={festival.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      />
+                    )}
                     {festival.accent && (
                       <div
                         className="absolute inset-0 opacity-10"

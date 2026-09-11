@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingBag, ArrowLeft, Tag, X, AlertCircle, Trash2, Sparkles } from 'lucide-react';
 
 import { useCartStore } from '@/components/cart/cart-store';
@@ -21,7 +22,7 @@ import { QtyStepper } from '@/components/ui/QtyStepper';
 import { EmptyCart } from '@/components/ui/EmptyState';
 import { buttonClasses } from '@/components/ui/button-styles';
 import { formatMoney } from '@/lib/format';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 
 export function CartPageClient() {
   const {
@@ -102,7 +103,7 @@ export function CartPageClient() {
 
         <ul className="divide-y divide-sand-deep/60 border-y border-sand-deep/60">
           {lines.map((line) => {
-            const photoKey = line.image?.url.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+            const photoKey = line.image?.url ? normalizePhotoKey(line.image.url) : '';
             const hasPhoto = isKnownPhoto(photoKey);
 
             return (
@@ -110,6 +111,15 @@ export function CartPageClient() {
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-sand-deep/50 bg-sand-soft sm:h-24 sm:w-24">
                   {hasPhoto ? (
                     <Photo name={photoKey} sizes="96px" className="h-full w-full object-cover" />
+                  ) : line.image?.url ? (
+                    <Image
+                      src={resolveImageUrl(line.image.url)}
+                      alt={line.image.alt || line.name}
+                      width={line.image.width || 200}
+                      height={line.image.height || 200}
+                      sizes="96px"
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="grid h-full w-full place-items-center">
                       <ShoppingBag className="h-5 w-5 text-gold" aria-hidden="true" />

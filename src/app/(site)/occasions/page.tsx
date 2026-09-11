@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { getStore } from '@/lib/data';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { Photo } from '@/components/ui/Photo';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 
 export const metadata: Metadata = {
   title: 'Shop by Occasion | POOJARO',
@@ -43,13 +45,23 @@ export default async function OccasionsPage() {
               >
                 {occ.imageUrl ? (
                   <div className="relative w-16 h-16 rounded-full overflow-hidden bg-sand-soft/60 shrink-0">
-                    <Image
-                      src={occ.imageUrl}
-                      alt={occ.name}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
+                    {isKnownPhoto(normalizePhotoKey(occ.imageUrl)) ? (
+                      <Photo
+                        name={normalizePhotoKey(occ.imageUrl)}
+                        alt={occ.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    ) : (
+                      <Image
+                        src={resolveImageUrl(occ.imageUrl)}
+                        alt={occ.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-gold-wash/60 border border-gold-deep/20 flex items-center justify-center shrink-0">

@@ -12,53 +12,70 @@
 import Image, { type ImageProps } from 'next/image';
 
 import { cn } from '@/lib/cn';
-import { PHOTOS, photo, type PhotoAsset } from '@/lib/photos';
+import { PHOTOS, photo, resolveImageUrl, type PhotoAsset } from '@/lib/photos';
 import type { ProductImage } from '@/lib/data/types';
 
 /** Manifest entries keyed by their served path, so a stored URL can find its blur. */
 const BY_SRC = new Map<string, PhotoAsset>(Object.values(PHOTOS).map((asset) => [asset.src, asset]));
 
 export function assetForSrc(src: string): PhotoAsset | null {
-  return BY_SRC.get(src) ?? null;
+  if (!src) return null;
+  return BY_SRC.get(src) ?? photo(src) ?? null;
 }
 
 export interface PhotoProps extends Omit<ImageProps, 'src' | 'alt' | 'width' | 'height' | 'placeholder' | 'blurDataURL'> {
-  /** Key into the photo manifest, e.g. "hero-thali". */
+  /** Key into the photo manifest or image path, e.g. "hero-thali". */
   name: string;
   /** Overrides the manifest's own alt text. Pass "" only for pure decoration. */
   alt?: string;
   className?: string;
+  fill?: boolean;
 }
 
 /**
  * A curated photo from the manifest.
  *
- * Renders nothing if the key is unknown rather than throwing — a missing
- * decorative image should not take a product page down with it.
+ * Renders nothing if the key is unknown and not a valid image path rather than throwing.
  */
-export function Photo({ name, alt, className, sizes = '100vw', ...rest }: PhotoProps) {
+export function Photo({ name, alt, className, sizes = '100vw', fill, ...rest }: PhotoProps) {
   const asset = photo(name);
-  if (!asset) return null;
+  if (asset) {
+    return (
+      <Image
+        src={asset.src}
+        alt={alt ?? asset.alt}
+        {...(fill ? { fill: true } : { width: asset.width, height: asset.height })}
+        sizes={sizes}
+        placeholder="blur"
+        blurDataURL={asset.blurDataURL}
+        className={className}
+        {...rest}
+      />
+    );
+  }
 
-  return (
-    <Image
-      src={asset.src}
-      alt={alt ?? asset.alt}
-      width={asset.width}
-      height={asset.height}
-      sizes={sizes}
-      placeholder="blur"
-      blurDataURL={asset.blurDataURL}
-      className={className}
-      {...rest}
-    />
-  );
+  const resolved = resolveImageUrl(name);
+  if (resolved) {
+    return (
+      <Image
+        src={resolved}
+        alt={alt ?? ''}
+        {...(fill ? { fill: true } : { width: 800, height: 800 })}
+        sizes={sizes}
+        className={className}
+        {...rest}
+      />
+    );
+  }
+
+  return null;
 }
 
 export interface ProductPhotoProps
   extends Omit<ImageProps, 'src' | 'alt' | 'width' | 'height' | 'placeholder' | 'blurDataURL'> {
   image: ProductImage;
   className?: string;
+  fill?: boolean;
 }
 
 /**
@@ -66,18 +83,17 @@ export interface ProductPhotoProps
  *
  * Dimensions come from the record, so admin-uploaded images reserve space just
  * as reliably as the seeded ones. The blur is looked up by path when the image
- * is one of ours, and quietly skipped when it is not — an uploaded file has no
- * build-time placeholder, and inventing one would mean decoding it per request.
+ * is one of ours, and quietly skipped when it is not.
  */
-export function ProductPhoto({ image, className, sizes = '(min-width: 768px) 50vw, 100vw', ...rest }: ProductPhotoProps) {
+export function ProductPhoto({ image, className, sizes = '(min-width: 768px) 50vw, 100vw', fill, ...rest }: ProductPhotoProps) {
   const asset = assetForSrc(image.url);
+  const src = resolveImageUrl(image.url) || image.url;
 
   return (
     <Image
-      src={image.url}
-      alt={image.alt}
-      width={image.width}
-      height={image.height}
+      src={src}
+      alt={image.alt || ''}
+      {...(fill ? { fill: true } : { width: image.width || 800, height: image.height || 800 })}
       sizes={sizes}
       {...(asset ? { placeholder: 'blur' as const, blurDataURL: asset.blurDataURL } : {})}
       className={className}

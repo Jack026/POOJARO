@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AdminShell } from '@/components/admin/AdminShell';
 import type { Product } from '@/lib/data/types';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -103,7 +104,7 @@ export default function ProductsPage() {
                   <tr key={product.id} className="hover:bg-white border-b border-[#E8DDCA]">
                     <td className="p-4">
                       {product.images[0] ? (
-                        <img src={product.images[0].url} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                        <img src={resolveImageUrl(product.images[0].url)} alt={product.name} className="w-12 h-12 object-cover rounded" />
                       ) : (
                         <div className="w-12 h-12 bg-gray-200 rounded"></div>
                       )}

@@ -1,11 +1,16 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { useWishlistStore } from '@/components/wishlist/wishlist-store';
 import { useCartStore } from '@/components/cart/cart-store';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { Photo } from '@/components/ui/Photo';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
+import { formatMoney } from '@/lib/format';
+import { PeacockMini } from '@/components/peacock';
 
 const CRUMBS = [
   { label: 'Home', href: '/' },
@@ -42,7 +47,7 @@ export default function WishlistPage() {
 
         {productIds.length === 0 ? (
           <div className="py-16 text-center">
-            <Heart className="w-10 h-10 text-sand-deep mx-auto mb-4" aria-hidden />
+            <PeacockMini size={64} className="mx-auto mb-4" />
             <p className="text-brown font-medium mb-2">Your wishlist is empty</p>
             <p className="text-brown-soft text-sm mb-6">
               Save items you want to buy later using the heart icon on any product.
@@ -71,12 +76,6 @@ export default function WishlistPage() {
   );
 }
 
-/**
- * We only have IDs client-side. The product data must be fetched.
- * Since wishlist is localStorage-only and this is a client component, we
- * display a note directing users to view each product. A future enhancement
- * can add a Server Action to hydrate product data from IDs.
- */
 function WishlistItems({
   productIds,
   onRemove,
@@ -86,42 +85,95 @@ function WishlistItems({
   onRemove: (id: string, name?: string) => void;
   onAddToCart: (productId: string, name?: string) => void;
 }) {
+  const [products, setProducts] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    if (productIds.length === 0) return;
+    fetch(`/api/products?ids=${encodeURIComponent(productIds.join(','))}`)
+      .then((r) => r.json())
+      .then((list) => {
+        if (Array.isArray(list)) {
+          const map: Record<string, any> = {};
+          for (const p of list) {
+            map[p.id] = p;
+          }
+          setProducts(map);
+        }
+      })
+      .catch((e) => console.error('Failed to load wishlist products', e));
+  }, [productIds]);
+
   return (
     <div className="space-y-3">
-      {productIds.map((id) => (
-        <div
-          key={id}
-          className="flex items-center justify-between gap-4 p-4 rounded-xl border border-sand-deep bg-sand-soft/20"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-12 h-12 rounded-lg bg-sand-deep/30 shrink-0 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-brown-muted" aria-hidden />
+      {productIds.map((id) => {
+        const product = products[id];
+        const image = product?.images?.[0];
+        const photoKey = image?.url ? normalizePhotoKey(image.url) : '';
+        const hasPhoto = isKnownPhoto(photoKey);
+
+        return (
+          <div
+            key={id}
+            className="flex items-center justify-between gap-4 p-4 rounded-xl border border-sand-deep bg-sand-soft/20"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-16 h-16 rounded-lg bg-sand-deep/30 shrink-0 overflow-hidden relative border border-sand-deep/50 flex items-center justify-center">
+                {hasPhoto ? (
+                  <Photo name={photoKey} sizes="64px" className="w-full h-full object-cover" />
+                ) : image?.url ? (
+                  <Image
+                    src={resolveImageUrl(image.url)}
+                    alt={image.alt || product?.name || ''}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Heart className="w-5 h-5 text-brown-muted" aria-hidden />
+                )}
+              </div>
+              <div className="min-w-0">
+                {product ? (
+                  <>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="text-sm font-medium text-brown hover:text-gold-deep transition-colors truncate block"
+                    >
+                      {product.name}
+                    </Link>
+                    <p className="text-xs font-semibold text-gold-deep mt-0.5">
+                      {formatMoney(product.price)}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-brown-muted truncate font-mono">{id}</p>
+                    <p className="text-xs text-brown-muted mt-0.5">Saved item</p>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm text-brown-muted truncate font-mono">{id}</p>
-              <p className="text-xs text-brown-muted mt-0.5">Saved item</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => onAddToCart(id, product?.name)}
+                className="p-2 rounded-lg border border-sand-deep text-brown hover:border-brown/50 hover:bg-sand-soft/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep"
+                aria-label="Add to cart"
+              >
+                <ShoppingCart className="w-4 h-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={() => onRemove(id, product?.name)}
+                className="p-2 rounded-lg border border-sand-deep text-brown-muted hover:text-red-500 hover:border-red-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep"
+                aria-label="Remove from wishlist"
+              >
+                <Heart className="w-4 h-4 fill-current" aria-hidden />
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => onAddToCart(id)}
-              className="p-2 rounded-lg border border-sand-deep text-brown hover:border-brown/50 hover:bg-sand-soft/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep"
-              aria-label="Add to cart"
-            >
-              <ShoppingCart className="w-4 h-4" aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={() => onRemove(id)}
-              className="p-2 rounded-lg border border-sand-deep text-brown-muted hover:text-red-500 hover:border-red-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep"
-              aria-label="Remove from wishlist"
-            >
-              <Heart className="w-4 h-4 fill-current" aria-hidden />
-            </button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       <p className="text-xs text-brown-muted pt-2">
         Visit each product page to see details and current pricing.{' '}
         <Link href="/shop" className="text-gold-deep underline underline-offset-2">Browse shop</Link>
@@ -129,3 +181,4 @@ function WishlistItems({
     </div>
   );
 }
+

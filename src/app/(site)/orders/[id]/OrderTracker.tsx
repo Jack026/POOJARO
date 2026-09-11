@@ -17,13 +17,15 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import Image from 'next/image';
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
 import { buttonClasses } from '@/components/ui/button-styles';
 import { Photo } from '@/components/ui/Photo';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, formatMoney, formatPhone } from '@/lib/format';
 import { ORDER_STATUS_DETAIL, ORDER_STATUS_LABEL } from '@/lib/domain/orders';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
+import { PeacockSignature } from '@/components/peacock';
 import type { Order, OrderStatus, PaymentMethod } from '@/lib/data/types';
 
 const PAYMENT_LABEL: Record<PaymentMethod, string> = {
@@ -236,7 +238,7 @@ export function OrderTracker({ order: initialOrder }: { order: Order }) {
 
         <ul className="divide-y divide-sand-deep/40">
           {order.items.map((item) => {
-            const photoKey = item.image?.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+            const photoKey = item.image ? normalizePhotoKey(item.image) : '';
             const hasPhoto = isKnownPhoto(photoKey);
 
             return (
@@ -244,6 +246,15 @@ export function OrderTracker({ order: initialOrder }: { order: Order }) {
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-sand-deep/50 bg-sand-soft">
                   {hasPhoto ? (
                     <Photo name={photoKey} sizes="64px" className="h-full w-full object-cover" />
+                  ) : item.image ? (
+                    <Image
+                      src={resolveImageUrl(item.image)}
+                      alt={item.name}
+                      width={64}
+                      height={64}
+                      sizes="64px"
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="grid h-full w-full place-items-center">
                       <Package className="h-5 w-5 text-gold" aria-hidden="true" />
@@ -349,6 +360,16 @@ export function OrderTracker({ order: initialOrder }: { order: Order }) {
         <Link href="/contact" className={buttonClasses({ variant: 'secondary', size: 'md' })}>
           Need help with this order?
         </Link>
+      </div>
+
+      {/* Authentic ritual blessing seal */}
+      <div className="pt-10 pb-2 flex flex-col items-center justify-center text-center">
+        <PeacockSignature
+          variant="henna-on-light"
+          layout="vertical"
+          size={120}
+          className="opacity-80 hover:opacity-100 transition-opacity"
+        />
       </div>
     </div>
   );

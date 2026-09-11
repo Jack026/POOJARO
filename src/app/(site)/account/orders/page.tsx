@@ -2,6 +2,7 @@ import { getCustomerSession } from '@/lib/auth/guards';
 import { getStore } from '@/lib/data';
 import Link from 'next/link';
 import { Package, ChevronRight } from 'lucide-react';
+import { resolveImageUrl } from '@/lib/photos';
 
 export default async function OrdersPage() {
   const session = await getCustomerSession();
@@ -60,7 +61,7 @@ export default async function OrdersPage() {
                   {order.items.slice(0, 3).map((item, i) => (
                     <div key={i} className="w-16 h-16 rounded-lg bg-sand-soft/50 border-2 border-white overflow-hidden relative z-10" style={{ zIndex: 10 - i }}>
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-brown-muted/50">
                           <Package className="w-6 h-6" />

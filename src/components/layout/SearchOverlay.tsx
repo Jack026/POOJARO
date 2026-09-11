@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { EASE_OUT_SOFT, DURATION } from '@/lib/motion';
 import { formatMoney } from '@/lib/format';
-import { isKnownPhoto, photo } from '@/lib/photos';
+import { isKnownPhoto, photo, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 import Image from 'next/image';
 
 const POPULAR_SEARCHES = [
@@ -199,7 +199,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                         <p className="text-xs eyebrow pb-2">Products</p>
                         <ul role="listbox" className="space-y-1">
                           {suggestions.map((s) => {
-                            const photoKey = s.imageUrl?.replace(/^\/images\//, '').replace(/\.webp$/, '') ?? '';
+                            const photoKey = s.imageUrl ? normalizePhotoKey(s.imageUrl) : '';
                             const asset = isKnownPhoto(photoKey) ? photo(photoKey) : null;
                             return (
                               <li key={s.id} role="option" aria-selected={false}>
@@ -220,6 +220,14 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                                         className="object-cover w-full h-full"
                                         placeholder="blur"
                                         blurDataURL={asset.blurDataURL}
+                                      />
+                                    ) : s.imageUrl ? (
+                                      <Image
+                                        src={resolveImageUrl(s.imageUrl)}
+                                        alt={s.name}
+                                        width={40}
+                                        height={40}
+                                        className="object-cover w-full h-full"
                                       />
                                     ) : (
                                       <ShoppingBag className="w-4 h-4 text-gold" />

@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/ui/Reveal';
 import { Photo } from '@/components/ui/Photo';
 import { isKnownPhoto } from '@/lib/photos';
+import { PeacockCornerOrnament } from '@/components/peacock';
 
 const occasions = [
   {
@@ -42,8 +43,13 @@ const occasions = [
 
 export function OccasionGrid() {
   return (
-    <section className="section-y bg-ivory">
-      <div className="container-page">
+    <section className="section-y relative isolate overflow-hidden bg-ivory">
+      {/* Subtle handcrafted peacock corner ornament in top-left */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-4 -left-4 z-0 opacity-20">
+        <PeacockCornerOrnament variant="henna-on-light" position="top-left" size={140} />
+      </div>
+
+      <div className="container-page relative z-10">
         <SectionHeading
           eyebrow="Choose Your Occasion"
           title="Every Ritual, Perfectly Prepared"

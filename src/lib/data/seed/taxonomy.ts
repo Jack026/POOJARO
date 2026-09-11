@@ -85,7 +85,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For the first day in a new home.',
     description:
       'The housewarming ceremony asks for a specific set of samagri — kalash, kalawa, akshat, the nine diyas. Everything gathered here is what a Griha Pravesh actually calls for, nothing padded in.',
-    imageUrl: 'kit-griha-pravesh',
+    imageUrl: '/images/kit-griha-pravesh-680.webp',
     icon: 'Home',
     sortOrder: 1,
     isActive: true,
@@ -97,7 +97,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For the vrat and the katha.',
     description:
       'A Satyanarayan Katha runs long and needs panchamrit, banana leaves and tulsi ready before it begins. Assembled for a family gathering rather than a single person.',
-    imageUrl: 'sam-thali-spoon',
+    imageUrl: '/images/sam-thali-spoon-404.webp',
     icon: 'BookOpen',
     sortOrder: 2,
     isActive: true,
@@ -109,7 +109,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For Diwali and every Friday.',
     description:
       'Lotus, coins, mishri and the lamps that stay lit through the evening. Sized for a household puja, whether it is Diwali night or an ordinary Friday.',
-    imageUrl: 'kit-lakshmi',
+    imageUrl: '/images/kit-lakshmi-640.webp',
     icon: 'Sparkles',
     sortOrder: 3,
     isActive: true,
@@ -121,7 +121,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For Chaturthi and weekly worship.',
     description:
       'Durva grass, modak, red flowers — the offerings specific to Ganesha, and the samagri for the aarti around them.',
-    imageUrl: 'kit-ganesh',
+    imageUrl: '/images/kit-ganesh-1024.webp',
     icon: 'Flower2',
     sortOrder: 4,
     isActive: true,
@@ -133,7 +133,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For Shivratri and Sawan Somvar.',
     description:
       'Bilva leaves, vibhuti, gangajal and a rudraksha mala. Restrained by design, the way Shiv puja tends to be.',
-    imageUrl: 'sam-chandan',
+    imageUrl: '/images/sam-chandan-306.webp',
     icon: 'Waves',
     sortOrder: 5,
     isActive: true,
@@ -145,7 +145,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For Navratri and Ashtami.',
     description:
       'Sindoor, garlands and enough diyas to carry nine nights. Built for a puja that runs across days, not one sitting.',
-    imageUrl: 'sam-sindoor',
+    imageUrl: '/images/sam-sindoor-260.webp',
     icon: 'Flame',
     sortOrder: 6,
     isActive: true,
@@ -157,7 +157,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For the fire ritual.',
     description:
       'Samidha, ghee, til and jau measured for a household havan — the parts that are hardest to source separately.',
-    imageUrl: 'sam-dhoop',
+    imageUrl: '/images/sam-dhoop-200.webp',
     icon: 'Flame',
     sortOrder: 7,
     isActive: true,
@@ -169,7 +169,7 @@ export const OCCASIONS: Occasion[] = [
     tagline: 'For the everyday altar.',
     description:
       'The things that run out first — wicks, camphor, agarbatti, kumkum. Restock without thinking about it.',
-    imageUrl: 'sam-diya-brass',
+    imageUrl: '/images/sam-diya-brass-304.webp',
     icon: 'Sunrise',
     sortOrder: 8,
     isActive: true,
@@ -192,7 +192,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Ten days of modak, durva and evening aarti.',
     description:
       'From the sthapana on the first morning to the visarjan, Chaturthi runs on a steady supply of durva, red flowers and camphor. Stock once, and the ten days take care of themselves.',
-    imageUrl: 'sam-idol',
+    imageUrl: '/images/sam-idol-330.webp',
     icon: 'Flower2',
     startDate: '2026-09-14T00:00:00.000Z',
     endDate: '2026-09-24T00:00:00.000Z',
@@ -208,7 +208,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'A lamp that does not go out for nine days.',
     description:
       'The akhand jyot needs oil, wicks and patience. Everything for the nine nights, counted out so the ninth evening is as complete as the first.',
-    imageUrl: 'sam-garland',
+    imageUrl: '/images/sam-garland-240.webp',
     icon: 'Flame',
     startDate: '2026-10-11T00:00:00.000Z',
     endDate: '2026-10-19T00:00:00.000Z',
@@ -224,7 +224,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Sindoor, garlands and the Ashtami anjali.',
     description:
       'From Shashthi to Dashami, with the sindoor khela at the end. Samagri portioned for a pandal-scale puja or a room at home.',
-    imageUrl: 'sam-sindoor',
+    imageUrl: '/images/sam-sindoor-260.webp',
     icon: 'Sparkles',
     startDate: '2026-10-16T00:00:00.000Z',
     endDate: '2026-10-20T00:00:00.000Z',
@@ -240,7 +240,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Celebrate with intention.',
     description:
       'Lakshmi Puja at dusk, then the lamps. Diyas, wicks, coins, mishri and marigold — enough for the whole house, not just the altar.',
-    imageUrl: 'sam-coins',
+    imageUrl: '/images/sam-coins-500.webp',
     icon: 'Sparkles',
     startDate: '2026-11-08T00:00:00.000Z',
     endDate: '2026-11-12T00:00:00.000Z',
@@ -256,7 +256,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Bilva, vibhuti and gangajal, through four prahars.',
     description:
       'An all-night vigil with abhishek at each prahar. The samagri is simple; running out of it at 2am is not.',
-    imageUrl: 'sam-chandan',
+    imageUrl: '/images/sam-chandan-306.webp',
     icon: 'Moon',
     startDate: '2027-02-24T00:00:00.000Z',
     endDate: '2027-02-25T00:00:00.000Z',
@@ -272,7 +272,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Panchamrit, tulsi and the jhula.',
     description:
       'The abhishek happens at midnight and the panchamrit has to be ready before it. Tulsi, makhan-mishri and the cradle essentials in one place.',
-    imageUrl: 'sam-mishri',
+    imageUrl: '/images/sam-mishri-220.webp',
     icon: 'Baby',
     startDate: '2027-09-03T00:00:00.000Z',
     endDate: '2027-09-04T00:00:00.000Z',
@@ -288,7 +288,7 @@ export const FESTIVALS: Festival[] = [
     tagline: 'Multi-kit sets for households that host.',
     description:
       'For homes where the puja is not a single evening. Larger quantities of the essentials that run out first, priced as a set.',
-    imageUrl: 'sam-marigold',
+    imageUrl: '/images/sam-marigold-272.webp',
     icon: 'Gift',
     startDate: null,
     endDate: null,

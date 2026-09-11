@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Photo } from '@/components/ui/Photo';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/ui/Reveal';
-import { isKnownPhoto } from '@/lib/photos';
+import { isKnownPhoto, normalizePhotoKey, resolveImageUrl } from '@/lib/photos';
 import type { Festival } from '@/lib/data/types';
 import { daysUntil, countdownLabel } from '@/lib/format';
 
@@ -64,7 +65,7 @@ export function FestivalRail({ festivals, now = new Date() }: FestivalRailProps)
         <div className="mt-10">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {active.map((f, i) => {
-              const photoKey = f.imageUrl.replace(/^\/images\//, '').replace(/\.webp$/, '');
+              const photoKey = f.imageUrl ? normalizePhotoKey(f.imageUrl) : '';
               const hasPhoto = isKnownPhoto(photoKey);
               return (
                 <Reveal key={f.id} effect="up" delay={i * 0.05}>
@@ -74,7 +75,9 @@ export function FestivalRail({ festivals, now = new Date() }: FestivalRailProps)
                   >
                     <div className="relative mx-auto w-16 h-16 rounded-full overflow-hidden border-2 border-sand-deep/30 bg-sand-soft group-hover:border-gold transition-colors flex items-center justify-center">
                       {hasPhoto ? (
-                        <Photo name={photoKey as any} sizes="64px" className="object-cover w-full h-full" priority={i < 3} />
+                        <Photo name={photoKey} sizes="64px" className="object-cover w-full h-full" priority={i < 3} />
+                      ) : f.imageUrl ? (
+                        <Image src={resolveImageUrl(f.imageUrl)} alt={f.name} width={64} height={64} className="object-cover w-full h-full" priority={i < 3} />
                       ) : (
                         <span className="text-gold text-xs">Festival</span>
                       )}
