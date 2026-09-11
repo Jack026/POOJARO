@@ -130,7 +130,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'For the vrat, the katha and the prasad after.',
     description:
       'A Satyanarayan Katha runs for a couple of hours and the panchamrit has to be ready before it starts. Everything here is measured for the full vidhi — the five ingredients for the panchamrit, the tulsi, the banana leaves, and enough samagri for the aarti at the end. The two sizes are the difference between an immediate family and a house full of relatives.',
-    photos: ['sam-thali-spoon', 'sam-akshat', 'sam-paan', 'sam-supari'],
+    photos: ['kit-satyanarayan', 'sam-thali-spoon', 'sam-akshat', 'sam-paan', 'sam-supari'],
     categoryId: 'puja-kits',
     occasionIds: ['satyanarayan'],
     festivalIds: [],
@@ -281,7 +281,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'Bilva, vibhuti and gangajal — restrained by design.',
     description:
       'Shiv puja asks for less than most, and this kit respects that. Bilva leaves, vibhuti, gangajal, a rudraksha mala and white flowers, with enough for the four abhisheks of a Shivratri vigil. Nothing decorative has been added to make the box look fuller.',
-    photos: ['sam-chandan', 'sam-dhoop', 'sam-akshat'],
+    photos: ['kit-shiv', 'sam-chandan', 'sam-dhoop', 'sam-akshat'],
     categoryId: 'puja-kits',
     occasionIds: ['shiv-puja'],
     festivalIds: ['mahashivratri'],
@@ -321,7 +321,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'Sindoor, garlands and enough lamps for the Ashtami.',
     description:
       'Durga Puja is not one evening, and a kit built for one evening runs out by Ashtami. This one carries the sindoor for the khela, red garlands, the chunri, and lamp oil and wicks in a quantity that survives five days of morning and evening aarti.',
-    photos: ['sam-sindoor', 'sam-garland', 'sam-diya-clay'],
+    photos: ['kit-durga', 'sam-sindoor', 'sam-garland', 'sam-diya-clay'],
     categoryId: 'puja-kits',
     occasionIds: ['durga-puja'],
     festivalIds: ['durga-puja-festival', 'navratri'],
@@ -364,7 +364,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'One lamp, nine nights, no midnight refills.',
     description:
       'The akhand jyot is a simple idea with an unforgiving requirement: the flame does not go out for nine days. That takes more oil and more wicks than people expect. This kit is calculated for the full nine nights of continuous burning, with the garlands and samagri for the daily puja alongside it.',
-    photos: ['sam-garland', 'sam-diya-clay', 'sam-incense-stand'],
+    photos: ['kit-navratri', 'sam-garland', 'sam-diya-clay', 'sam-incense-stand'],
     categoryId: 'puja-kits',
     occasionIds: ['durga-puja', 'daily-puja'],
     festivalIds: ['navratri'],
@@ -405,7 +405,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'The fire-ritual mix, measured for one household havan.',
     description:
       'Havan samagri is the part people end up buying loose and guessing at. This is a measured mix of the nine dry ingredients plus the samidha, til, jau and ghee, portioned for a single household havan of roughly forty-five minutes. It burns clean and does not need topping up mid-ritual.',
-    photos: ['sam-dhoop', 'sam-camphor', 'sam-akshat'],
+    photos: ['kit-havan', 'sam-dhoop', 'sam-camphor', 'sam-akshat'],
     categoryId: 'havan',
     occasionIds: ['havan', 'griha-pravesh'],
     festivalIds: ['festival-specials'],
@@ -530,7 +530,7 @@ const DRAFTS: Draft[] = [
     shortDescription: 'Long-staple cotton, twisted, burns without soot.',
     description:
       'Twisted from long-staple cotton with no synthetic core, which is why they burn with a steady flame and almost no black soot on the diya rim. A hundred to a pack, in both the short round and the long flat cut.',
-    photos: ['sam-diya-clay'],
+    photos: ['sam-cotton-wicks'],
     categoryId: 'diyas',
     occasionIds: ['daily-puja'],
     festivalIds: ['diwali', 'navratri'],

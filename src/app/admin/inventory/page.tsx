@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 export default function InventoryPage() {
-  const [items, setItems] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [components, setComponents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'products' | 'components'>('products');
 
@@ -11,12 +12,19 @@ export default function InventoryPage() {
     fetch('/api/admin/inventory')
       .then(res => res.json())
       .then(data => {
-        setItems(data.products || []);
+        const prodList = Array.isArray(data?.products) ? data.products : (data?.products?.items || []);
+        const compList = Array.isArray(data?.components) ? data.components : [];
+        setProducts(prodList);
+        setComponents(compList);
         setLoading(false);
       }).catch(() => {
+        setProducts([]);
+        setComponents([]);
         setLoading(false);
       });
   }, []);
+
+  const items = tab === 'products' ? products : components;
 
   return (
     <AdminShell>

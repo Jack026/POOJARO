@@ -181,7 +181,8 @@ export function findShortfalls(
   const unavailable: CartShortfall[] = [];
 
   for (const item of items) {
-    const line = lines.find((l) => l.productId === item.productId && l.variantId === item.variantId);
+    const itemVariantId = item.variantId ?? null;
+    const line = lines.find((l) => l.productId === item.productId && (l.variantId ?? null) === itemVariantId);
     if (line) {
       if (line.qty < item.qty) {
         shortfalls.push({
@@ -197,8 +198,8 @@ export function findShortfalls(
     // The line was dropped. Sold out, or genuinely gone?
     const product = byId.get(item.productId);
     const sellable = product?.status === 'published';
-    const variant = item.variantId ? product?.variants.find((v) => v.id === item.variantId) ?? null : null;
-    const missingVariant = item.variantId !== null && variant === null;
+    const variant = itemVariantId ? product?.variants.find((v) => v.id === itemVariantId) ?? null : null;
+    const missingVariant = Boolean(itemVariantId) && variant === null;
     const entry: CartShortfall = {
       productId: item.productId,
       name: product?.name ?? 'An item in your cart',

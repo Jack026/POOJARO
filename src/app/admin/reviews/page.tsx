@@ -11,9 +11,12 @@ export default function ReviewsPage() {
     fetch('/api/admin/reviews')
       .then(res => res.json())
       .then(data => {
-        setReviews(Array.isArray(data) ? data : []);
+        setReviews(Array.isArray(data) ? data : (data?.items || []));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setReviews([]);
+        setLoading(false);
+      });
   }, []);
 
   const handleUpdateStatus = async (id: string, status: string) => {

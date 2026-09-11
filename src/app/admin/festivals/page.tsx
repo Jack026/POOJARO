@@ -35,10 +35,11 @@ export default function FestivalsPage() {
       const res = await fetch('/api/admin/festivals');
       if (res.ok) {
         const data = await res.json();
-        setFestivals(data);
+        setFestivals(Array.isArray(data) ? data : (data?.items || []));
       }
     } catch (e) {
       console.error(e);
+      setFestivals([]);
     } finally {
       setLoading(false);
     }
@@ -49,7 +50,7 @@ export default function FestivalsPage() {
     try {
       const res = await fetch(`/api/admin/festivals/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setFestivals(festivals.filter(f => f.id !== id));
+        setFestivals(prev => Array.isArray(prev) ? prev.filter(f => f.id !== id) : []);
       } else {
         alert('Failed to delete festival');
       }

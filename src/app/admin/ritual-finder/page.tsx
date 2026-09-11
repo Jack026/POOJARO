@@ -10,9 +10,12 @@ export default function RitualFinderPage() {
     fetch('/api/admin/recommendation-rules')
       .then(res => res.json())
       .then(data => {
-        setRules(Array.isArray(data) ? data : []);
+        setRules(Array.isArray(data) ? data : (data?.items || []));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setRules([]);
+        setLoading(false);
+      });
   }, []);
 
   return (

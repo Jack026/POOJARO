@@ -29,10 +29,11 @@ export default function CategoriesPage() {
       const res = await fetch('/api/admin/categories');
       if (res.ok) {
         const data = await res.json();
-        setCategories(data);
+        setCategories(Array.isArray(data) ? data : (data?.items || []));
       }
     } catch (e) {
       console.error(e);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -43,7 +44,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setCategories(categories.filter(c => c.id !== id));
+        setCategories(prev => Array.isArray(prev) ? prev.filter(c => c.id !== id) : []);
       } else {
         alert('Failed to delete category');
       }

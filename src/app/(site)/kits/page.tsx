@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { getStore } from '@/lib/data';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { ShopSort } from '@/app/shop/ShopSort';
-import { Pagination } from '@/app/shop/Pagination';
+import { ShopSort } from '@/app/(site)/shop/ShopSort';
+import { Pagination } from '@/app/(site)/shop/Pagination';
+
+export const metadata: Metadata = {
+  title: 'Puja Kits — POOJARO',
+  description: 'Complete ritual kits for every ceremony — everything you need, in one box.',
+};
 
 const ALLOWED_SORTS = ['relevance', 'price-asc', 'price-desc', 'rating', 'newest', 'discount'] as const;
 type AllowedSort = (typeof ALLOWED_SORTS)[number];
@@ -18,36 +22,19 @@ function isAllowedSort(s: string | undefined): s is AllowedSort {
 const PAGE_SIZE = 12;
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const store = await getStore();
-  const festival = await store.getFestivalBySlug(slug);
-  if (!festival) return { title: 'Festival not found | POOJARO' };
-  return {
-    title: `${festival.name} Puja Collection | POOJARO`,
-    description: festival.description || festival.tagline,
-  };
-}
-
-export default async function FestivalPage({ params, searchParams }: PageProps) {
-  const { slug } = await params;
-  const qParams = await searchParams;
-
-  const store = await getStore();
-  const festival = await store.getFestivalBySlug(slug);
-  if (!festival || !festival.isActive) notFound();
-
-  const rawSort = Array.isArray(qParams['sort']) ? qParams['sort'][0] : (qParams['sort'] ?? 'relevance');
+export default async function KitsPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const rawSort = Array.isArray(params['sort']) ? params['sort'][0] : (params['sort'] ?? 'relevance');
   const sort = isAllowedSort(rawSort) ? rawSort : 'relevance';
-  const page = Math.max(1, Number(qParams['page']) || 1);
+  const page = Math.max(1, Number(params['page']) || 1);
   const offset = (page - 1) * PAGE_SIZE;
 
+  const store = await getStore();
   const result = await store.listProducts({
-    festivalId: festival.id,
+    isKit: true,
     status: 'published',
     sort: sort === 'relevance' ? undefined : sort,
     limit: PAGE_SIZE,
@@ -64,18 +51,16 @@ export default async function FestivalPage({ params, searchParams }: PageProps) 
           <ol className="flex items-center gap-1.5 text-xs text-brown-muted">
             <li><Link href="/">Home</Link></li>
             <li><ChevronRight className="w-3 h-3" /></li>
-            <li><Link href="/shop">Shop</Link></li>
-            <li><ChevronRight className="w-3 h-3" /></li>
-            <li className="text-brown font-medium">{festival.name}</li>
+            <li className="text-brown font-medium">Puja Kits</li>
           </ol>
         </nav>
 
-        {/* Hero */}
+        {/* Header */}
         <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <SectionHeading
-            eyebrow={festival.tagline}
-            title={festival.headline || festival.name}
-            copy={festival.description}
+            eyebrow="Ritual Kits"
+            title="Everything in One Box"
+            copy="Complete, curated kits — every item you need for the ceremony, nothing missing."
           />
           <ShopSort current={sort} />
         </div>
@@ -83,12 +68,7 @@ export default async function FestivalPage({ params, searchParams }: PageProps) 
         {/* Grid */}
         {result.items.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="text-brown-soft text-sm">
-              We&apos;re curating the collection for {festival.name}. Check back soon.
-            </p>
-            <Link href="/shop" className="mt-4 inline-block text-sm text-gold-deep underline underline-offset-2">
-              Browse all products
-            </Link>
+            <p className="text-brown-soft text-sm">No kits available right now. Check back soon.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">

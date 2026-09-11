@@ -10,9 +10,12 @@ export default function AdminsPage() {
     fetch('/api/admin/admins')
       .then(res => res.json())
       .then(data => {
-        setAdmins(Array.isArray(data) ? data : []);
+        setAdmins(Array.isArray(data) ? data : (data?.items || []));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setAdmins([]);
+        setLoading(false);
+      });
   }, []);
 
   return (

@@ -54,19 +54,11 @@ export default function AdminDashboardPage() {
           })),
         };
 
-        const orders = ordersRes?.ok ? await ordersRes.json() : [
-          { id: 'ORD-1001', customerName: 'Rahul Sharma', totalAmount: 150000, status: 'pending', createdAt: new Date().toISOString() },
-          { id: 'ORD-1002', customerName: 'Priya Patel', totalAmount: 85000, status: 'processing', createdAt: new Date().toISOString() },
-          { id: 'ORD-1003', customerName: 'Amit Kumar', totalAmount: 320000, status: 'shipped', createdAt: new Date().toISOString() },
-          { id: 'ORD-1004', customerName: 'Neha Singh', totalAmount: 45000, status: 'delivered', createdAt: new Date().toISOString() },
-          { id: 'ORD-1005', customerName: 'Vikram Das', totalAmount: 120000, status: 'cancelled', createdAt: new Date().toISOString() },
-        ];
+        const ordersRaw = ordersRes?.ok ? await ordersRes.json() : null;
+        const orders = ordersRaw?.items ?? ordersRaw ?? [];
 
-        const lowStock = inventoryRes?.ok ? await inventoryRes.json() : [
-          { id: 'PROD-1', name: 'Premium Diwali Puja Kit', sku: 'KIT-DWL-01', stock: 5, threshold: 20 },
-          { id: 'PROD-2', name: 'Sandalwood Incense Sticks', sku: 'INC-SND-01', stock: 12, threshold: 50 },
-          { id: 'PROD-3', name: 'Pure Cow Ghee (500ml)', sku: 'GHE-COW-01', stock: 2, threshold: 10 },
-        ];
+        const inventoryRaw = inventoryRes?.ok ? await inventoryRes.json() : null;
+        const lowStock = Array.isArray(inventoryRaw) ? inventoryRaw : (inventoryRaw?.items ?? []);
 
         setData({ analytics, orders, lowStock });
       } catch (e) {
@@ -90,7 +82,7 @@ export default function AdminDashboardPage() {
   }
 
   const { analytics, orders, lowStock } = data || {};
-  const maxRevenue = Math.max(...(analytics?.revenueByDay?.map((d: any) => d.value) || [0]));
+  const maxRevenue = Math.max(...(analytics?.revenueByDay?.map((d: any) => d.revenue ?? d.value) || [0]));
 
   return (
     <AdminShell>
@@ -108,15 +100,15 @@ export default function AdminDashboardPage() {
           </div>
           <div className="rounded-xl border border-sand-deep bg-white p-6 shadow-sm">
             <h3 className="text-sm font-medium text-brown-soft">Orders</h3>
-            <p className="mt-2 text-3xl font-semibold text-brown">{analytics?.orders || 0}</p>
+            <p className="mt-2 text-3xl font-semibold text-brown">{analytics?.orderCount ?? analytics?.orders ?? 0}</p>
           </div>
           <div className="rounded-xl border border-sand-deep bg-white p-6 shadow-sm">
             <h3 className="text-sm font-medium text-brown-soft">Average Order Value</h3>
-            <p className="mt-2 text-3xl font-semibold text-brown">{formatMoney(analytics?.aov || 0)}</p>
+            <p className="mt-2 text-3xl font-semibold text-brown">{formatMoney(analytics?.averageOrderValue ?? analytics?.aov ?? 0)}</p>
           </div>
           <div className="rounded-xl border border-sand-deep bg-white p-6 shadow-sm">
             <h3 className="text-sm font-medium text-brown-soft">New Customers</h3>
-            <p className="mt-2 text-3xl font-semibold text-brown">{analytics?.customers || 0}</p>
+            <p className="mt-2 text-3xl font-semibold text-brown">{analytics?.customerCount ?? analytics?.customers ?? 0}</p>
           </div>
         </div>
 
@@ -162,15 +154,15 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-sand-deep">
                   {orders?.map((order: any) => (
                     <tr key={order.id} className="hover:bg-sand-soft/30 transition-colors">
-                      <td className="py-3 font-medium text-brown">{order.id}</td>
-                      <td className="py-3 text-brown">{order.customerName}</td>
+                      <td className="py-3 font-medium text-brown">{order.orderNumber || order.id}</td>
+                      <td className="py-3 text-brown">{order.shippingAddress?.fullName || order.email || '—'}</td>
                       <td className="py-3 text-brown-muted">
                         {new Date(order.createdAt).toLocaleDateString('en-IN', {
                           month: 'short', day: 'numeric'
                         })}
                       </td>
                       <td className="py-3"><StatusBadge status={order.status} /></td>
-                      <td className="py-3 text-right font-medium text-brown">{formatMoney(order.totalAmount)}</td>
+                      <td className="py-3 text-right font-medium text-brown">{formatMoney(order.totals?.total ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -29,8 +29,8 @@ export default function AnalyticsPage() {
 
         {loading ? (
           <p>Loading...</p>
-        ) : !data ? (
-          <p>No data available</p>
+        ) : !data || data.error ? (
+          <p className="text-gray-500">{data?.error || 'No data available'}</p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

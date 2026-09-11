@@ -20,10 +20,12 @@ export default function ProductsPage() {
       const res = await fetch('/api/admin/products?status=any');
       if (res.ok) {
         const data = await res.json();
-        setProducts(data);
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setProducts(list);
       }
     } catch (e) {
       console.error(e);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -34,7 +36,7 @@ export default function ProductsPage() {
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setProducts(products.filter(p => p.id !== id));
+        setProducts(prev => Array.isArray(prev) ? prev.filter(p => p.id !== id) : []);
       } else {
         alert('Failed to delete product');
       }
@@ -43,8 +45,9 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase());
+  const productList = Array.isArray(products) ? products : [];
+  const filteredProducts = productList.filter(p => {
+    const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.sku || '').toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

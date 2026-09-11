@@ -67,12 +67,29 @@ export const useCartStore = create<CartStoreState>()(
 
         set({ isSyncing: true });
         try {
-          const result = await syncCartAction({ items, couponCode });
-          set({
-            pricedCart: result.pricedCart,
-            couponEvaluation: result.couponEvaluation,
-            isSyncing: false,
+          // Use fetch to /api/cart/sync to avoid Next.js "Router action dispatched before initialization"
+          const res = await fetch('/api/cart/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, couponCode }),
           });
+
+          if (res.ok) {
+            const result = await res.json();
+            set({
+              pricedCart: result.pricedCart,
+              couponEvaluation: result.couponEvaluation,
+              isSyncing: false,
+            });
+          } else {
+            // Fallback to server action if needed
+            const result = await syncCartAction({ items, couponCode });
+            set({
+              pricedCart: result.pricedCart,
+              couponEvaluation: result.couponEvaluation,
+              isSyncing: false,
+            });
+          }
         } catch (error) {
           console.error('[CartStore] Failed to sync cart:', error);
           set({ isSyncing: false });
@@ -219,7 +236,10 @@ export const useCartStore = create<CartStoreState>()(
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
         if (state && state.items.length > 0) {
-          void state.syncCart();
+          // Defer to next tick so window/router is fully initialized
+          setTimeout(() => {
+            void state.syncCart();
+          }, 0);
         }
       },
     },

@@ -11,9 +11,12 @@ export default function CouponsPage() {
     fetch('/api/admin/coupons')
       .then(res => res.json())
       .then(data => {
-        setCoupons(Array.isArray(data) ? data : []);
+        setCoupons(Array.isArray(data) ? data : (data?.items || []));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setCoupons([]);
+        setLoading(false);
+      });
   }, []);
 
   return (

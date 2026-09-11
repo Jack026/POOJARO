@@ -18,6 +18,8 @@ import {
   ORDER_STATUS_DETAIL,
   STOCK_HELD_STATUSES,
 } from '../../domain/orders';
+import { autoProgressOrder } from '../../domain/orderProgress';
+import { sendOrderTransactionalEmail } from '../../domain/notifications';
 import { addBusinessDays } from '../../format';
 import {
   applyOrderQuery,
@@ -865,6 +867,13 @@ export class LocalDataStore implements DataStore {
         }
       }
 
+      // Dispatch real transactional confirmation email to customer
+      sendOrderTransactionalEmail(
+        order,
+        status === 'pending' ? 'order_placed' : 'payment_successful',
+        `Thank you for your order ${order.orderNumber}. We have received your request and will begin preparing your puja kit.`,
+      ).catch((err) => console.error('Transactional email dispatch failed on placeOrder:', err));
+
       db.analyticsEvents.push({
         id: newId('evt'),
         name: 'purchase',
@@ -880,17 +889,61 @@ export class LocalDataStore implements DataStore {
 
   async getOrderById(id: Id): Promise<Order | null> {
     const db = await snapshot();
-    return clone(db.orders.find((o) => o.id === id) ?? null);
+    const found = db.orders.find((o) => o.id === id);
+    if (!found) return null;
+    const { changed, order } = autoProgressOrder(found);
+    if (changed) {
+      await mutate((data) => {
+        const idx = data.orders.findIndex((o) => o.id === id);
+        if (idx !== -1) data.orders[idx] = order;
+      });
+      const topic = NOTIFICATION_FOR_STATUS[order.status];
+      const marker = `[email_sent_${order.status}]`;
+      if (topic && !order.internalNotes?.some((n) => n.includes(marker))) {
+        order.internalNotes = order.internalNotes || [];
+        order.internalNotes.push(marker);
+        sendOrderTransactionalEmail(order, topic).catch((err) =>
+          console.error('Milestone status email failed:', err),
+        );
+      }
+    }
+    return clone(order);
   }
 
   async getOrderByNumber(orderNumber: string): Promise<Order | null> {
     const db = await snapshot();
     const normalised = orderNumber.trim().toUpperCase();
-    return clone(db.orders.find((o) => o.orderNumber.toUpperCase() === normalised) ?? null);
+    const found = db.orders.find((o) => o.orderNumber.toUpperCase() === normalised);
+    if (!found) return null;
+    const { changed, order } = autoProgressOrder(found);
+    if (changed) {
+      await mutate((data) => {
+        const idx = data.orders.findIndex((o) => o.id === found.id);
+        if (idx !== -1) data.orders[idx] = order;
+      });
+      const topic = NOTIFICATION_FOR_STATUS[order.status];
+      const marker = `[email_sent_${order.status}]`;
+      if (topic && !order.internalNotes?.some((n) => n.includes(marker))) {
+        order.internalNotes = order.internalNotes || [];
+        order.internalNotes.push(marker);
+        sendOrderTransactionalEmail(order, topic).catch((err) =>
+          console.error('Milestone status email failed:', err),
+        );
+      }
+    }
+    return clone(order);
   }
 
   async listOrders(query: OrderQuery = {}): Promise<Page<Order>> {
     const db = await snapshot();
+    let anyChanged = false;
+    for (const ord of db.orders) {
+      const { changed } = autoProgressOrder(ord);
+      if (changed) anyChanged = true;
+    }
+    if (anyChanged) {
+      await mutate(() => {});
+    }
     const page = applyOrderQuery(db.orders, query);
     return { items: clone(page.items), total: page.total };
   }
@@ -912,6 +965,12 @@ export class LocalDataStore implements DataStore {
       const topic = NOTIFICATION_FOR_STATUS[status];
       const copy = notificationCopy(status, order.orderNumber);
       if (topic && copy) notify(db, order.userId, topic, copy.title, copy.body, `/orders/${order.orderNumber}`);
+
+      if (topic) {
+        sendOrderTransactionalEmail(order, topic, note).catch((err) =>
+          console.error('Status update email failed:', err),
+        );
+      }
 
       audit(db, actor, 'order.status', 'order', order.id, order.orderNumber, [
         { field: 'status', from, to: status },
@@ -939,6 +998,9 @@ export class LocalDataStore implements DataStore {
         if (copy) {
           notify(db, order.userId, 'payment_successful', copy.title, copy.body, `/orders/${order.orderNumber}`);
         }
+        sendOrderTransactionalEmail(order, 'payment_successful', 'Payment confirmed successfully.').catch((err) =>
+          console.error('Payment confirmation email failed:', err),
+        );
       }
       audit(db, actor, 'order.payment', 'order', order.id, order.orderNumber, [
         { field: 'paymentStatus', from, to: payment.paymentStatus },
@@ -957,6 +1019,9 @@ export class LocalDataStore implements DataStore {
       const from = order.status;
       pushTimeline(order, 'cancelled', reason || 'Order cancelled.');
       order.internalNotes.push(`[${nowIso()}] ${actor.name} cancelled: ${reason}`);
+      sendOrderTransactionalEmail(order, 'order_placed', `Order cancelled: ${reason}`).catch((err) =>
+        console.error('Cancellation email failed:', err),
+      );
       audit(db, actor, 'order.cancel', 'order', order.id, order.orderNumber, [
         { field: 'status', from, to: 'cancelled' },
         { field: 'reason', from: null, to: reason },
@@ -975,6 +1040,9 @@ export class LocalDataStore implements DataStore {
       order.paymentStatus = 'refunded';
       pushTimeline(order, 'refunded', note || 'Refund issued.');
       order.internalNotes.push(`[${nowIso()}] ${actor.name} recorded a refund: ${note}`);
+      sendOrderTransactionalEmail(order, 'payment_successful', `Refund processed: ${note || 'Amount credited'}`).catch((err) =>
+        console.error('Refund email failed:', err),
+      );
       audit(db, actor, 'order.refund', 'order', order.id, order.orderNumber, [
         { field: 'status', from, to: 'refunded' },
         { field: 'amount', from: null, to: order.totals.total },

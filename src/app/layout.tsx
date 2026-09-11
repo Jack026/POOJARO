@@ -1,38 +1,28 @@
 import type { Metadata, Viewport } from 'next';
 
-import { getStore } from '@/lib/data';
 import { fontVariables } from '@/lib/fonts';
-import { buildMetadata, jsonLd, organizationSchema, websiteSchema } from '@/lib/seo';
-
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
-import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
-import { ScrollProgress } from '@/components/layout/ScrollProgress';
-import { CustomCursor } from '@/components/layout/CustomCursor';
-import { CartDrawer } from '@/components/cart/CartDrawer';
-import { QuickViewModal } from '@/components/quick-view/QuickViewModal';
-import { Toaster } from '@/components/ui/Toaster';
 
 import './globals.css';
 
 /**
- * Root metadata.
+ * The one true root layout — the only place in the app allowed to render
+ * <html>/<body>. It is deliberately bare: the storefront and the admin panel
+ * are two different experiences, so each owns its own chrome in its own layout
+ * (app/(site)/layout.tsx and app/admin/layout.tsx) rather than sharing one.
  *
- * Read from Settings rather than hard-coded so the owner can rename the store or
- * rewrite the tagline in the admin panel and have it reach search results and
- * social cards without a deploy (Â§52, Â§57).
+ * Nesting <html> inside <html> is exactly the hydration error this structure
+ * fixes — admin used to declare its own document shell while living inside the
+ * storefront root. Route groups keep the URLs unchanged ((site) is stripped
+ * from the path) while letting the chrome apply to storefront routes only.
  */
-export async function generateMetadata(): Promise<Metadata> {
-  const store = await getStore();
-  const settings = await store.getSettings();
-  return buildMetadata({ path: '/' }, settings);
-}
+export const metadata: Metadata = {
+  title: { default: 'POOJARO', template: '%s | POOJARO' },
+};
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Pinch-zoom must stay available. Locking it is an accessibility failure (Â§49).
+  // Pinch-zoom must stay available. Locking it is an accessibility failure (§49).
   maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#faf8f3' },
@@ -41,42 +31,13 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const store = await getStore();
-  const settings = await store.getSettings();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
-      <body className="min-h-dvh bg-ivory text-brown antialiased flex flex-col justify-between">
-        {/* First tab stop on every page: jump past the header straight to content. */}
-        <a href="#main" className="skip-link">
-          Skip to main content
-        </a>
-
-        <ScrollProgress />
-        <CustomCursor />
-        <AnnouncementBar announcement={settings.announcement} />
-        <Header />
-
-        <div className="flex-1">{children}</div>
-
-        <Footer settings={settings} />
-        <CartDrawer />
-        <QuickViewModal />
-        <WhatsAppButton settings={settings} />
-        <Toaster />
-
-        {/* Site-wide structured data (Â§47). Page-level Product and Breadcrumb
-            schemas are emitted by the pages that own them. */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd(organizationSchema(settings)) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema(settings)) }}
-        />
-      </body>
+      {/* bg-ivory is the storefront default and the surface the global 404 /
+          error boundaries sit on; the admin layout paints its own white canvas
+          over it. */}
+      <body className="min-h-dvh bg-ivory text-brown antialiased">{children}</body>
     </html>
   );
 }

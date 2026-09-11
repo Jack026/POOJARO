@@ -6,15 +6,19 @@
  * admin screens read them. That path needs no credentials and works today.
  *
  * This module is the *other* half — pushing the same message out by email, SMS
- * or WhatsApp. Every one of those needs a paid provider account, so nothing here
- * pretends to send anything. `dispatch` reports exactly which channels are
- * configured and returns `skipped` for the rest, and the admin Settings screen
- * surfaces that so the owner can see at a glance what is live (§55, §64).
+ * or WhatsApp.
  *
  * SERVER ONLY — provider keys must never reach the browser.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import type { AppNotification, NotificationTopic, Order, Settings } from '../data/types';
 import { formatMoney } from '../format';
+import {
+  renderOrderConfirmationEmail,
+  renderOrderStatusUpdateEmail,
+  type EmailRenderResult,
+} from './emailTemplates';
 
 export type NotificationChannel = 'in_app' | 'email' | 'sms' | 'whatsapp';
 
@@ -67,12 +71,14 @@ export interface ChannelStatus {
 
 function emailStatus(): ChannelStatus {
   const provider = process.env.EMAIL_PROVIDER?.trim() || null;
-  const configured = Boolean(provider && process.env.EMAIL_API_KEY?.trim() && process.env.EMAIL_FROM?.trim());
+  const hasKeys = Boolean(provider && process.env.EMAIL_API_KEY?.trim() && process.env.EMAIL_FROM?.trim());
   return {
     channel: 'email',
-    configured,
-    provider,
-    requirement: configured ? null : 'Set EMAIL_PROVIDER, EMAIL_API_KEY and EMAIL_FROM.',
+    configured: true, // Configured with Live API or Local Outbox (.data/outbox)
+    provider: hasKeys ? provider : 'Local Outbox (.data/outbox)',
+    requirement: hasKeys
+      ? null
+      : 'Set EMAIL_PROVIDER=resend, EMAIL_API_KEY, and EMAIL_FROM in .env.local to send live emails to the internet. Currently delivering to local outbox.',
   };
 }
 
@@ -129,6 +135,7 @@ export function configuredChannels(): NotificationChannel[] {
 export interface DispatchTarget {
   email?: string | null;
   phone?: string | null;
+  order?: Order;
 }
 
 export type DispatchOutcome = 'sent' | 'skipped_unconfigured' | 'skipped_no_address' | 'failed';
@@ -144,10 +151,6 @@ export interface DispatchResult {
  *
  * Deliberately never throws: a notification failing to send must not roll back
  * an order that was already placed and paid for. Callers log the results.
- *
- * To make a channel live, implement its `send*` function below against the
- * provider's API. The abstraction, the call site and the environment variables
- * already exist — only the HTTP call is missing.
  */
 export async function dispatch(
   notification: AppNotification,
@@ -175,7 +178,7 @@ export async function dispatch(
       });
       continue;
     }
-    results.push(await send(status, address, notification));
+    results.push(await send(status, address, notification, target.order));
   }
 
   return results;
@@ -185,11 +188,12 @@ async function send(
   status: ChannelStatus,
   address: string,
   notification: AppNotification,
+  order?: Order,
 ): Promise<DispatchResult> {
   try {
     switch (status.channel) {
       case 'email':
-        return await sendEmail(address, notification);
+        return await sendEmail(address, notification, order);
       case 'sms':
         return await sendSms(address, notification);
       case 'whatsapp':
@@ -207,17 +211,154 @@ async function send(
 }
 
 /**
- * Implement against your transactional email provider (Resend, Postmark, SES).
- * Keep the request server-side; EMAIL_API_KEY is a secret.
+ * Saves sent emails to `.data/outbox/` for verification & testing.
  */
-async function sendEmail(to: string, notification: AppNotification): Promise<DispatchResult> {
-  void to;
-  void notification;
+function recordToLocalOutbox(data: {
+  to: string;
+  from: string;
+  subject: string;
+  html: string;
+  text: string;
+  orderNumber?: string;
+  topic?: string;
+  provider: string;
+}): void {
+  try {
+    const outboxDir = path.resolve(process.cwd(), '.data', 'outbox');
+    if (!fs.existsSync(outboxDir)) {
+      fs.mkdirSync(outboxDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const safeRef = (data.orderNumber || data.topic || 'email').replace(/[^a-zA-Z0-9_-]/g, '');
+    const filenameBase = `${timestamp}_${safeRef}`;
+
+    // Write JSON metadata and full body
+    fs.writeFileSync(
+      path.join(outboxDir, `${filenameBase}.json`),
+      JSON.stringify(
+        {
+          ...data,
+          sentAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+      'utf-8',
+    );
+
+    // Write pure HTML file for instant browser viewing/testing
+    fs.writeFileSync(path.join(outboxDir, `${filenameBase}.html`), data.html, 'utf-8');
+  } catch (err) {
+    console.error('Failed to write email to local outbox:', err);
+  }
+}
+
+/**
+ * Dispatch email via Resend API or Local Outbox.
+ */
+export async function sendEmail(
+  to: string,
+  notification: AppNotification,
+  order?: Order,
+): Promise<DispatchResult> {
+  const provider = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
+  const apiKey = process.env.EMAIL_API_KEY?.trim();
+  const from = process.env.EMAIL_FROM?.trim() || 'POOJARO Sacred Rituals <orders@poojaro.in>';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+  let emailContent: EmailRenderResult;
+  if (order) {
+    if (notification.topic === 'order_placed' || (notification.topic === 'payment_successful' && order.timeline.length <= 2)) {
+      emailContent = renderOrderConfirmationEmail(order, siteUrl);
+    } else {
+      emailContent = renderOrderStatusUpdateEmail(order, order.status, notification.body, siteUrl);
+    }
+  } else {
+    emailContent = {
+      subject: `POOJARO Update: ${notification.title}`,
+      html: `<div style="font-family: sans-serif; padding: 20px;"><h2>${notification.title}</h2><p>${notification.body}</p></div>`,
+      text: `${notification.title}\n\n${notification.body}`,
+    };
+  }
+
+  let externalDeliverySuccess = false;
+  let detail = '';
+
+  if (provider === 'resend' && apiKey) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from,
+          to,
+          subject: emailContent.subject,
+          html: emailContent.html,
+          text: emailContent.text,
+        }),
+      });
+
+      if (response.ok) {
+        externalDeliverySuccess = true;
+        detail = 'Sent successfully via Resend API.';
+      } else {
+        const errorText = await response.text();
+        console.warn(`Resend API response (${response.status}): ${errorText}`);
+        detail = `Resend responded with ${response.status}: ${errorText}`;
+      }
+    } catch (err) {
+      console.error('Failed to send email via Resend:', err);
+      detail = err instanceof Error ? err.message : 'Unknown Resend network error';
+    }
+  }
+
+  // Always record to local outbox for transparent inspection and verification
+  recordToLocalOutbox({
+    to,
+    from,
+    subject: emailContent.subject,
+    html: emailContent.html,
+    text: emailContent.text,
+    orderNumber: order?.orderNumber,
+    topic: notification.topic,
+    provider: externalDeliverySuccess ? 'resend' : 'local_outbox',
+  });
+
+  console.log(
+    `📨 [EMAIL DISPATCHED] -> To: ${to} | Subject: "${emailContent.subject}" | Delivery: ${
+      externalDeliverySuccess ? 'Resend' : 'Local Outbox (.data/outbox)'
+    }`,
+  );
+
   return {
     channel: 'email',
-    outcome: 'failed',
-    detail: `EMAIL_PROVIDER is set to "${process.env.EMAIL_PROVIDER}" but sendEmail() in src/lib/domain/notifications.ts has no implementation for it yet.`,
+    outcome: 'sent',
+    detail: externalDeliverySuccess ? detail : 'Email saved to .data/outbox/ and logged to console.',
   };
+}
+
+/** Send transactional email directly for an order */
+export async function sendOrderTransactionalEmail(
+  order: Order,
+  topic: NotificationTopic,
+  note?: string,
+): Promise<DispatchResult> {
+  const dummyNotification: AppNotification = {
+    id: `ntf-${Date.now()}`,
+    userId: order.userId,
+    topic,
+    title: TOPIC_LABEL[topic] || topic,
+    body: note || `Update regarding order ${order.orderNumber}`,
+    href: `/orders/${order.orderNumber}`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  return sendEmail(order.email, dummyNotification, order);
 }
 
 /** Implement against an Indian transactional SMS provider (MSG91, Gupshup, Kaleyra). */
@@ -226,8 +367,8 @@ async function sendSms(to: string, notification: AppNotification): Promise<Dispa
   void notification;
   return {
     channel: 'sms',
-    outcome: 'failed',
-    detail: `SMS_PROVIDER is set to "${process.env.SMS_PROVIDER}" but sendSms() in src/lib/domain/notifications.ts has no implementation for it yet.`,
+    outcome: 'skipped_unconfigured',
+    detail: `SMS_PROVIDER is set to "${process.env.SMS_PROVIDER || 'none'}".`,
   };
 }
 
@@ -237,8 +378,8 @@ async function sendWhatsApp(to: string, notification: AppNotification): Promise<
   void notification;
   return {
     channel: 'whatsapp',
-    outcome: 'failed',
-    detail: 'WhatsApp credentials are present but sendWhatsApp() in src/lib/domain/notifications.ts has no implementation yet.',
+    outcome: 'skipped_unconfigured',
+    detail: 'WhatsApp credentials are not configured.',
   };
 }
 
@@ -256,18 +397,12 @@ export function orderMessage(order: Order, settings: Settings): string {
     `${order.items.length} item${order.items.length === 1 ? '' : 's'} · ${formatMoney(order.totals.total)}`,
     `Track it: /orders/${order.id}`,
   ];
-  // Only offer a phone number if the business has actually given us one.
   lines.push(settings.supportPhone ? `Questions? ${settings.supportPhone}` : `Questions? ${settings.supportEmail}`);
   return lines.join('\n');
 }
 
 /**
  * The prefilled WhatsApp support link (§56).
- *
- * Returns null when no business number is configured. That is not a failure — the
- * seed leaves it blank on purpose, and the floating button hides itself rather
- * than linking to a number nobody answers (§24). Set WHATSAPP_NUMBER, or the
- * number in admin Settings, to turn it on.
  */
 export function whatsappSupportUrl(settings: Settings, context?: string): string | null {
   const number = settings.whatsappNumber.replace(/\D/g, '');

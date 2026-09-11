@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStore } from '@/lib/data';
 import { PlaceOrderInput } from '@/lib/data/store';
-import { newId, nowIso } from '@/lib/data/shared';
+import { newId } from '@/lib/data/shared';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json({ error: result.message, shortfalls: result.shortfalls }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('POST /api/orders error:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

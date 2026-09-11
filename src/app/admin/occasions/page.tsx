@@ -31,10 +31,11 @@ export default function OccasionsPage() {
       const res = await fetch('/api/admin/occasions');
       if (res.ok) {
         const data = await res.json();
-        setOccasions(data);
+        setOccasions(Array.isArray(data) ? data : (data?.items || []));
       }
     } catch (e) {
       console.error(e);
+      setOccasions([]);
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ export default function OccasionsPage() {
     try {
       const res = await fetch(`/api/admin/occasions/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setOccasions(occasions.filter(o => o.id !== id));
+        setOccasions(prev => Array.isArray(prev) ? prev.filter(o => o.id !== id) : []);
       } else {
         alert('Failed to delete occasion');
       }

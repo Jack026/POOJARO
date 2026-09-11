@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, Trash2, Edit2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button-styles';
+import { resolvePincode, type PincodeLocation } from '@/lib/domain/pincodes';
 import type { Address } from '@/lib/data/types';
 
 export default function AddressesPage() {
@@ -10,6 +11,7 @@ export default function AddressesPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [detectedLoc, setDetectedLoc] = useState<PincodeLocation | null>(null);
   
   const [formData, setFormData] = useState<Partial<Address>>({
     label: 'Home',
@@ -23,6 +25,37 @@ export default function AddressesPage() {
     pincode: '',
     isDefault: false
   });
+
+  useEffect(() => {
+    if (formData.pincode && formData.pincode.length === 6) {
+      const loc = resolvePincode(formData.pincode);
+      if (loc) setDetectedLoc(loc);
+    } else {
+      setDetectedLoc(null);
+    }
+  }, [formData.pincode]);
+
+  const handlePincodeChange = (value: string) => {
+    const clean = value.replace(/\D/g, '').slice(0, 6);
+    setFormData((prev) => ({ ...prev, pincode: clean }));
+
+    if (clean.length === 6) {
+      const loc = resolvePincode(clean);
+      if (loc) {
+        setDetectedLoc(loc);
+        setFormData((prev) => ({
+          ...prev,
+          pincode: clean,
+          city: loc.city || loc.place,
+          state: loc.state,
+        }));
+      } else {
+        setDetectedLoc(null);
+      }
+    } else {
+      setDetectedLoc(null);
+    }
+  };
 
   const fetchAddresses = async () => {
     setLoading(true);
@@ -176,23 +209,76 @@ export default function AddressesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-brown mb-1">Pincode (6 digits)</label>
-                <input required type="text" pattern="[0-9]{6}" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white" />
+            {/* Pincode with Auto-Location Detection */}
+            <div>
+              <label className="block text-sm font-medium text-brown mb-1">Pincode (6 digits)</label>
+              <div className="relative">
+                <input
+                  required
+                  type="text"
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  value={formData.pincode}
+                  onChange={(e) => handlePincodeChange(e.target.value)}
+                  placeholder="e.g. 560001, 110001, 302020"
+                  className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white font-mono tracking-wider"
+                />
+                {formData.pincode?.length === 6 && detectedLoc && (
+                  <div className="absolute right-3 top-2.5 text-success flex items-center gap-1 text-xs font-medium">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Verified</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-brown mb-1">City</label>
-                <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-brown mb-1">State</label>
-                <select required value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white">
-                  <option value="">Select State</option>
-                  {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+
+              {/* Location Detection Notification */}
+              <div className="mt-2">
+                {formData.pincode?.length === 6 && detectedLoc ? (
+                  <div className="flex items-center gap-2 p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-lg text-emerald-900 text-xs sm:text-sm">
+                    <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <div>
+                      <span className="font-semibold text-emerald-950">{detectedLoc.place}</span>, {detectedLoc.state}
+                      <span className="text-emerald-700 ml-1.5 text-xs font-normal">(Auto-detected)</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 bg-sand-soft/50 border border-sand-deep/40 rounded-lg text-brown-soft text-xs">
+                    <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
+                    <span>Enter your 6-digit PIN code to automatically detect your City / Place and State.</span>
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* City and State — show automatically when 6-digit pincode is entered */}
+            {(formData.pincode?.length === 6 || formData.city || formData.state) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1 border-t border-sand-deep/30">
+                <div>
+                  <label className="block text-sm font-medium text-brown mb-1">City / Place (Auto-detected)</label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-brown mb-1">State (Auto-detected)</label>
+                  <select
+                    required
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full rounded-lg border border-sand-deep/50 px-4 py-2 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold bg-white"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-4 pt-2">
               <label className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { getStore } from '@/lib/data';
+import { autoProgressOrder } from '@/lib/domain/orderProgress';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { buildMetadata } from '@/lib/seo';
 import { OrderTracker } from './OrderTracker';
@@ -13,7 +14,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const store = await getStore();
-  const order = await store.getOrderById(id);
+  const raw = (await store.getOrderById(id)) ?? (await store.getOrderByNumber(id));
+  const order = raw ? autoProgressOrder(raw).order : null;
 
   // Order pages carry a name, an address and a phone number. They are reachable
   // by unguessable id so a guest can return to one, but they must never be
@@ -28,9 +30,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function OrderPage({ params }: PageProps) {
   const { id } = await params;
   const store = await getStore();
-  const order = await store.getOrderById(id);
+  const raw = (await store.getOrderById(id)) ?? (await store.getOrderByNumber(id));
 
-  if (!order) notFound();
+  if (!raw) notFound();
+
+  const { order } = autoProgressOrder(raw);
 
   return (
     <main id="main" className="pt-10 pb-20">

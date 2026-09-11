@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getStore } from '@/lib/data';
 import { ProductCard } from '@/components/shop/ProductCard';
-import { ShopSort } from '@/app/shop/ShopSort';
-import { Pagination } from '@/app/shop/Pagination';
+import { ShopSort } from '@/app/(site)/shop/ShopSort';
+import { Pagination } from '@/app/(site)/shop/Pagination';
 
 const ALLOWED_SORTS = ['relevance', 'price-asc', 'price-desc', 'rating', 'newest', 'discount'] as const;
 type AllowedSort = (typeof ALLOWED_SORTS)[number];

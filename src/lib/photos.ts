@@ -96,6 +96,84 @@ export const PHOTOS: Record<string, PhotoAsset> = {
       }
     ]
   },
+  "kit-satyanarayan": {
+    "src": "/images/kit-satyanarayan-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Satyanarayan Puja Kit — traditional chowki setup with brass thali, panchamrit, tulsi, banana leaves, and sacred samagri",
+    "sizes": [
+      {
+        "src": "/images/kit-satyanarayan-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
+  "kit-shiv": {
+    "src": "/images/kit-shiv-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Shiv Puja Kit — brass Shivling, bilva patra, panchamrit lota, white chandan, and vibhuti",
+    "sizes": [
+      {
+        "src": "/images/kit-shiv-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
+  "kit-durga": {
+    "src": "/images/kit-durga-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Durga Puja Kit — red chunri, sindoor pot, copper kalash with coconut, and hibiscus offerings",
+    "sizes": [
+      {
+        "src": "/images/kit-durga-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
+  "kit-navratri": {
+    "src": "/images/kit-navratri-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Navratri Akhand Jyot Kit — brass akhand diya lamp with glass chimney, desi ghee, and continuous wicks",
+    "sizes": [
+      {
+        "src": "/images/kit-navratri-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
+  "kit-havan": {
+    "src": "/images/kit-havan-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Havan Samagri Kit — copper havan kund, herbal samagri mix, mango wood samidha, and pure desi cow ghee",
+    "sizes": [
+      {
+        "src": "/images/kit-havan-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
+  "sam-cotton-wicks": {
+    "src": "/images/sam-cotton-wicks-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "blurDataURL": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABQAgCdASoMAAwAAwBSJbACdAEWgaidRlMJiwAA+OTvtHd0KYrs0mUHDWlshiT2ZWyizLCPsxIDMAxxpDrXls7j9ZLaBltiDnWZJ6URqr0LIBJF+1SnwK7Te1D6AoXveAAAAA==",
+    "alt": "Pure cotton round and long wicks for diyas and akhand jyot",
+    "sizes": [
+      {
+        "src": "/images/sam-cotton-wicks-1024.webp",
+        "width": 1024
+      }
+    ]
+  },
   "kit-griha-pravesh": {
     "src": "/images/kit-griha-pravesh-680.webp",
     "width": 680,

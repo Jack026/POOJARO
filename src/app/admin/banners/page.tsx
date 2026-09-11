@@ -11,9 +11,12 @@ export default function BannersPage() {
     fetch('/api/admin/banners')
       .then(res => res.json())
       .then(data => {
-        setBanners(Array.isArray(data) ? data : []);
+        setBanners(Array.isArray(data) ? data : (data?.items || []));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setBanners([]);
+        setLoading(false);
+      });
   }, []);
 
   return (

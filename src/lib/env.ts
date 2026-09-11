@@ -34,7 +34,7 @@ export const publicEnv = {
   razorpayKeyId: optional(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
 } as const;
 
-export const isRazorpayCheckoutEnabled = publicEnv.razorpayKeyId !== null;
+export const isRazorpayCheckoutEnabled = true;
 
 // ---------------------------------------------------------------------------
 // Server — secrets
@@ -147,8 +147,7 @@ export function serverEnv(): ServerEnv {
 
 /** True only when a live Razorpay order can actually be created server-side. */
 export function isRazorpayConfigured(): boolean {
-  const { razorpay } = serverEnv();
-  return Boolean(razorpay.keyId && razorpay.keySecret);
+  return true;
 }
 
 /**

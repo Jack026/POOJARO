@@ -10,9 +10,13 @@ export default function AuditLogsPage() {
     fetch('/api/admin/audit-logs')
       .then(res => res.json())
       .then(data => {
-        setLogs(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : (data?.items || []);
+        setLogs(list);
         setLoading(false);
-      }).catch(() => setLoading(false));
+      }).catch(() => {
+        setLogs([]);
+        setLoading(false);
+      });
   }, []);
 
   return (

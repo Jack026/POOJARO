@@ -5,8 +5,8 @@ import { ChevronRight } from 'lucide-react';
 import { getStore } from '@/lib/data';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { ShopSort } from '@/app/shop/ShopSort';
-import { Pagination } from '@/app/shop/Pagination';
+import { ShopSort } from '@/app/(site)/shop/ShopSort';
+import { Pagination } from '@/app/(site)/shop/Pagination';
 
 const ALLOWED_SORTS = ['relevance', 'price-asc', 'price-desc', 'rating', 'newest', 'discount'] as const;
 type AllowedSort = (typeof ALLOWED_SORTS)[number];
@@ -25,21 +25,21 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const store = await getStore();
-  const occasion = await store.getOccasionBySlug(slug);
-  if (!occasion) return { title: 'Occasion not found | POOJARO' };
+  const festival = await store.getFestivalBySlug(slug);
+  if (!festival) return { title: 'Festival not found | POOJARO' };
   return {
-    title: `${occasion.name} Puja Essentials | POOJARO`,
-    description: occasion.description || occasion.tagline,
+    title: `${festival.name} Puja Collection | POOJARO`,
+    description: festival.description || festival.tagline,
   };
 }
 
-export default async function OccasionPage({ params, searchParams }: PageProps) {
+export default async function FestivalPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const qParams = await searchParams;
 
   const store = await getStore();
-  const occasion = await store.getOccasionBySlug(slug);
-  if (!occasion || !occasion.isActive) notFound();
+  const festival = await store.getFestivalBySlug(slug);
+  if (!festival || !festival.isActive) notFound();
 
   const rawSort = Array.isArray(qParams['sort']) ? qParams['sort'][0] : (qParams['sort'] ?? 'relevance');
   const sort = isAllowedSort(rawSort) ? rawSort : 'relevance';
@@ -47,7 +47,7 @@ export default async function OccasionPage({ params, searchParams }: PageProps) 
   const offset = (page - 1) * PAGE_SIZE;
 
   const result = await store.listProducts({
-    occasionId: occasion.id,
+    festivalId: festival.id,
     status: 'published',
     sort: sort === 'relevance' ? undefined : sort,
     limit: PAGE_SIZE,
@@ -66,16 +66,16 @@ export default async function OccasionPage({ params, searchParams }: PageProps) 
             <li><ChevronRight className="w-3 h-3" /></li>
             <li><Link href="/shop">Shop</Link></li>
             <li><ChevronRight className="w-3 h-3" /></li>
-            <li className="text-brown font-medium">{occasion.name}</li>
+            <li className="text-brown font-medium">{festival.name}</li>
           </ol>
         </nav>
 
         {/* Hero */}
         <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <SectionHeading
-            eyebrow="Occasion"
-            title={occasion.name}
-            copy={occasion.description || occasion.tagline}
+            eyebrow={festival.tagline}
+            title={festival.headline || festival.name}
+            copy={festival.description}
           />
           <ShopSort current={sort} />
         </div>
@@ -84,7 +84,7 @@ export default async function OccasionPage({ params, searchParams }: PageProps) 
         {result.items.length === 0 ? (
           <div className="py-24 text-center">
             <p className="text-brown-soft text-sm">
-              We&apos;re adding more items for this occasion. Check back soon.
+              We&apos;re curating the collection for {festival.name}. Check back soon.
             </p>
             <Link href="/shop" className="mt-4 inline-block text-sm text-gold-deep underline underline-offset-2">
               Browse all products
