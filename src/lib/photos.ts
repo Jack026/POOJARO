@@ -458,3 +458,7 @@ export type PhotoKey = keyof typeof PHOTOS;
 export function photo(key: string): PhotoAsset | null {
   return PHOTOS[key] ?? null;
 }
+
+export function isKnownPhoto(key: string): key is PhotoKey {
+  return Object.prototype.hasOwnProperty.call(PHOTOS, key);
+}

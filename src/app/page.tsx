@@ -1,56 +1,47 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
 import { getStore } from '@/lib/data';
-import { buttonClasses } from '@/components/ui/button-styles';
-import { Photo } from '@/components/ui/Photo';
 import { buildMetadata } from '@/lib/seo';
+
+import { Hero } from '@/components/home/Hero';
+import { OccasionGrid } from '@/components/home/OccasionGrid';
+import { KitShowcase } from '@/components/home/KitShowcase';
+import { RitualFinderTeaser } from '@/components/home/RitualFinderTeaser';
+import { FestivalRail } from '@/components/home/FestivalRail';
+import { BrandStory } from '@/components/home/BrandStory';
+import { WhyPoojaro } from '@/components/home/WhyPoojaro';
+import { Testimonials } from '@/components/home/Testimonials';
+import { TrustStrip } from '@/components/home/TrustStrip';
 
 export async function generateMetadata(): Promise<Metadata> {
   const store = await getStore();
-  return buildMetadata({ path: '/' }, await store.getSettings());
+  const settings = await store.getSettings();
+  return buildMetadata({ path: '/' }, settings);
 }
 
-/**
- * Placeholder home page.
- *
- * Replaced in the next step by the composed sections. It exists now so the
- * design tokens, fonts and data layer can be verified end to end in a real
- * build before any of that is layered on top.
- */
 export default async function HomePage() {
   const store = await getStore();
-  const [settings, products] = await Promise.all([
+  const [settings, kits, festivals, testimonials, trustBadges] = await Promise.all([
     store.getSettings(),
-    store.listProducts({ status: 'published' }),
+    store.listProducts({ isKit: true, isFeatured: true, status: 'published' }),
+    store.listFestivals(),
+    store.listTestimonials(),
+    store.getSettings().then((s) => s.trustBadges),
   ]);
 
+  const featuredKits = kits.items;
+
   return (
-    <main id="main" className="container-page section-y">
-      <p className="eyebrow">{settings.storeName}</p>
-      <h1 className="mt-4 text-display-xl">
-        Every Ritual.
-        <br />
-        Everything You Need.
-      </h1>
-      <p className="mt-6 max-w-xl text-lede text-brown-soft">
-        Authentic Puja Samagri and thoughtfully prepared ritual kits, brought together for the moments that matter.
-      </p>
-
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/shop" className={buttonClasses({ variant: 'primary', size: 'lg' })}>
-          Shop puja kits
-        </Link>
-        <Link href="/ritual-finder" className={buttonClasses({ variant: 'secondary', size: 'lg' })}>
-          Explore by occasion
-        </Link>
-      </div>
-
-      <div className="mt-14 max-w-lg overflow-hidden rounded-xl">
-        <Photo name="hero-thali" sizes="(min-width: 640px) 32rem, 100vw" priority />
-      </div>
-
-      <p className="mt-8 text-sm text-brown-muted">{products.total} published products in the catalogue.</p>
+    <main id="main">
+      <Hero />
+      <OccasionGrid />
+      <KitShowcase featuredKits={featuredKits} />
+      <RitualFinderTeaser />
+      <FestivalRail festivals={festivals} />
+      <BrandStory />
+      <WhyPoojaro />
+      <Testimonials testimonials={testimonials} />
+      <TrustStrip badges={trustBadges} storeName={settings.storeName} />
     </main>
   );
 }

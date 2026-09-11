@@ -10,6 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed:reset": "node scripts/reset-store.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "verify": "tsx scripts/verify-store.mts"
   },
   "dependencies": {

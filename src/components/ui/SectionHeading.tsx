@@ -23,6 +23,8 @@ export interface SectionHeadingProps {
   size?: 'md' | 'lg';
   link?: { href: string; label: string };
   className?: string;
+  /** Forwarded to the root div so `aria-labelledby` can point to the heading. */
+  id?: string;
 }
 
 export function SectionHeading({
@@ -34,12 +36,14 @@ export function SectionHeading({
   size = 'md',
   link,
   className,
+  id,
 }: SectionHeadingProps) {
   const Heading = level === 2 ? 'h2' : 'h3';
   const centred = align === 'center';
 
   return (
     <div
+      id={id}
       className={cn(
         'flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between',
         centred && 'sm:flex-col sm:items-center',

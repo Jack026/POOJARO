@@ -27,8 +27,15 @@
   --color-sand-soft: #f0e8d8; /* Card fill on ivory */
   --color-sand-deep: #d9caae; /* Hairline borders, dividers */
   --color-brown-soft: #5c4034; /* Secondary body copy on ivory */
-  --color-brown-muted: #8a7062; /* Captions, meta, placeholders */
-  --color-gold-deep: #96691f; /* Gold text on ivory — passes AA at 4.9:1 */
+  /* Measured, not assumed. brown-muted carries captions and meta — small text,
+     so it has to clear 4.5:1 on every surface it lands on, including sand-soft
+     cards (§49). #7a6055 measures 5.45:1 on ivory and 4.75:1 on sand-soft;
+     the lighter #8a7062 it replaced failed both, at 4.33 and 3.77. */
+  --color-brown-muted: #7a6055; /* Captions, meta, placeholders */
+  /* Likewise gold-deep: it is used on ivory, on the ivory-warm band and inside
+     gold-wash fills, and #96691f fell to 4.30 and 4.23 on the latter two.
+     #8a5f1c clears 4.5:1 on all three (5.30 / 4.99 / 4.91). */
+  --color-gold-deep: #8a5f1c; /* Gold text on ivory, ivory-warm and gold-wash */
   --color-gold-soft: #d9b871; /* Gold on brown surfaces */
   --color-gold-wash: #f7efdc; /* Tint fills, active nav pill */
 
