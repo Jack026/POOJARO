@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { Sparkles, ShieldCheck, ScrollText, Truck } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { EASE_OUT_SOFT } from '@/lib/motion';
-import { PeacockSignature } from '@/components/peacock';
+import { PeacockSignature, PeacockDivider } from '@/components/peacock';
 
 const pillars = [
   {
@@ -40,6 +40,7 @@ export function WhyPoojaro() {
           <h2 className="text-display-lg md:text-display-xl font-display text-brown">
             The POOJARO Difference
           </h2>
+          <PeacockDivider maxWidth={240} className="my-2 opacity-80" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">

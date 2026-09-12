@@ -49,7 +49,6 @@ export function PeacockMini({
         height={107}
         className="w-full h-full object-contain"
         priority={false}
-        quality={85}
         unoptimized
       />
     </div>

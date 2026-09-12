@@ -43,7 +43,7 @@ export default function ContactPage() {
 
         <div className="mt-10 pt-6 border-t border-sand-deep/40">
           <p className="text-xs text-brown-muted">
-            For order tracking, visit <Link href="/orders" className="text-gold-deep underline underline-offset-2">My Orders</Link> in your account.
+            For order tracking, visit <Link href="/account/orders" className="text-gold-deep underline underline-offset-2">My Orders</Link> in your account.
           </p>
         </div>
       </div>

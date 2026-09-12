@@ -3,7 +3,7 @@
 import { motion } from 'motion/react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { EASE_OUT_SOFT } from '@/lib/motion';
-import { PeacockSignature } from '@/components/peacock';
+import { PeacockSignature, PeacockFloralVine } from '@/components/peacock';
 
 export function BrandStory() {
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -74,19 +74,24 @@ export function BrandStory() {
           </div>
 
           {/* Editorial image */}
-          <motion.div
-            className="relative aspect-[4/3] lg:aspect-[1/1] rounded-2xl overflow-hidden shadow-lift"
-            initial={{ opacity: 0, scale: 0.96, y: 24 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: reduced ? 0.01 : 0.7, ease: EASE_OUT_SOFT }}
-          >
-            <img
-              src="/images/story-ganesh-1024.webp"
-              alt="Clay Ganesha idol with marigold garland and modak offerings on traditional cloth"
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
+          <div className="relative">
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-12 -right-10 z-0 opacity-30 hidden sm:block">
+              <PeacockFloralVine size={240} flip="none" />
+            </div>
+            <motion.div
+              className="relative z-10 aspect-[4/3] lg:aspect-[1/1] rounded-2xl overflow-hidden shadow-lift"
+              initial={{ opacity: 0, scale: 0.96, y: 24 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: reduced ? 0.01 : 0.7, ease: EASE_OUT_SOFT }}
+            >
+              <img
+                src="/images/story-ganesh-1024.webp"
+                alt="Clay Ganesha idol with marigold garland and modak offerings on traditional cloth"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,55 +1,69 @@
 import React from 'react';
 import Image from 'next/image';
+import { cn } from '@/lib/cn';
 
 export interface PeacockTailProps {
   className?: string;
   size?: number | string;
+  maxWidth?: number | string;
+  flip?: 'none' | 'horizontal' | 'vertical' | 'both';
   blendMode?: 'screen' | 'lighten' | 'normal' | 'multiply';
   opacity?: number;
+  glow?: boolean;
   style?: React.CSSProperties;
   variant?: string;
   animate?: boolean;
 }
 
 /**
- * PEACOCK TAIL / WATERMARK
- * Signature peacock PNG used as background watermark.
+ * POOJARO GRAND PEACOCK TAIL PLUME
+ * Sinuous cascading royal peacock feather plume with intricate henna barbs,
+ * blossoming lotuses, and hanging jewel pendants.
+ * Rendered from ultra-high-resolution 1024x512 artwork.
  */
 export function PeacockTail({
   className = '',
-  size = 400,
+  size,
+  maxWidth,
+  flip = 'none',
   blendMode = 'normal',
-  opacity = 0.2,
+  opacity = 1,
+  glow = true,
   style,
   ...rest
 }: PeacockTailProps) {
-  const width = typeof size === 'number' ? size : size;
-  const height = typeof size === 'number' ? Math.round(size * 0.666) : undefined;
+  const widthVal = size ? (typeof size === 'number' ? `${size}px` : size) : undefined;
+  const maxW = maxWidth ? (typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth) : undefined;
 
-  const inlineStyle: React.CSSProperties = {
-    position: 'relative',
-    mixBlendMode: blendMode,
-    opacity,
-    overflow: 'hidden',
-    ...(width ? { width } : {}),
-    ...(height ? { height } : {}),
-    ...style,
-  };
+  let transformStr = '';
+  if (flip === 'horizontal') transformStr = 'scaleX(-1)';
+  else if (flip === 'vertical') transformStr = 'scaleY(-1)';
+  else if (flip === 'both') transformStr = 'scale(-1, -1)';
 
   return (
     <div
-      className={`peacock-tail pointer-events-none select-none relative ${className}`}
-      style={inlineStyle}
+      className={cn(
+        'peacock-tail pointer-events-none select-none relative inline-block transition-transform duration-500 ease-out-soft',
+        glow && 'drop-shadow-[0_4px_24px_rgba(183,131,50,0.22)]',
+        className
+      )}
+      style={{
+        width: widthVal,
+        maxWidth: maxW,
+        mixBlendMode: blendMode,
+        opacity,
+        transform: transformStr || undefined,
+        ...style,
+      }}
       aria-hidden="true"
     >
       <Image
-        src="/images/peacock/peacock-main.png"
-        alt=""
+        src="/images/peacock/peacock-tail-grand.png"
+        alt="POOJARO Sacred Peacock Tail Plume"
         width={1024}
-        height={682}
-        className="w-full h-full object-contain"
+        height={512}
+        className="w-full h-auto object-contain"
         priority={false}
-        quality={80}
         unoptimized
       />
     </div>

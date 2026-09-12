@@ -14,3 +14,4 @@ export * from './PeacockFloralVine';
 export * from './PeacockCornerOrnament';
 export * from './PeacockDivider';
 export * from './PeacockSignature';
+export * from './LotusMandala';

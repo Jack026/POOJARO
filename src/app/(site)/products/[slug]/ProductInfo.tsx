@@ -14,6 +14,7 @@ import { QtyStepper } from '@/components/ui/QtyStepper';
 import { useCartStore } from '@/components/cart/cart-store';
 import { useWishlistStore } from '@/components/wishlist/wishlist-store';
 import { cn } from '@/lib/cn';
+import { PeacockSingleFeather } from '@/components/peacock';
 
 export function ProductInfo({ product }: { product: Product }) {
   const defaultV = defaultVariant(product);
@@ -211,6 +212,19 @@ export function ProductInfo({ product }: { product: Product }) {
           <p className="text-sm font-medium text-brown">Pan-India Delivery</p>
           <p className="text-xs text-brown-muted mt-0.5">
             Typically delivered within 3–6 business days. Express options available at checkout.
+          </p>
+        </div>
+      </div>
+
+      {/* Pandit-Curated & Sacred Seal */}
+      <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-ivory-warm/70 border border-sand-deep/40 shadow-subtle">
+        <PeacockSingleFeather size={42} tilt={12} className="shrink-0 drop-shadow-[0_2px_8px_rgba(183,131,50,0.2)]" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gold-deep">
+            Pandit-Curated & 100% Authentic
+          </p>
+          <p className="text-xs text-brown-muted mt-0.5 leading-snug">
+            Every sacred samagri is selected and tested for purity according to Vedic shastras.
           </p>
         </div>
       </div>

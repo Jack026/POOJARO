@@ -8,6 +8,7 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { buttonClasses } from '@/components/ui/button-styles';
 import { ArrowRight } from 'lucide-react';
 import type { Product } from '@/lib/data/types';
+import { PeacockDivider } from '@/components/peacock';
 
 interface KitShowcaseProps {
   featuredKits: Product[];
@@ -25,6 +26,7 @@ export function KitShowcase({ featuredKits, isLoading = false }: KitShowcaseProp
             copy="Everything you need, thoughtfully curated by our pandits with authentic samagri — right for beginners and experienced practitioners alike."
             align="center"
           />
+          <PeacockDivider maxWidth={260} className="my-2 opacity-80" />
         </Reveal>
 
         <div className="mt-12">

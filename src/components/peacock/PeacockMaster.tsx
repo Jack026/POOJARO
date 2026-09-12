@@ -48,7 +48,6 @@ export function PeacockMaster({
         height={682}
         className="w-full h-full object-contain drop-shadow-[0_4px_24px_rgba(183,131,50,0.25)]"
         priority={false}
-        quality={95}
         unoptimized
       />
     </div>

@@ -6,6 +6,7 @@ import type { KitContent } from '@/lib/data/types';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { EASE_OUT_SOFT } from '@/lib/motion';
 import { cn } from '@/lib/cn';
+import { PeacockDivider } from '@/components/peacock';
 
 // Map lucide icon names stored in the data to components.
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -36,6 +37,7 @@ export function KitContents({ contents }: KitContentsProps) {
         <h2 className="font-display text-display-md text-brown">
           Your Ritual Box Contains
         </h2>
+        <PeacockDivider maxWidth={220} className="my-2 opacity-80" wrapperClassName="!justify-start" />
         <p className="text-sm text-brown-muted mt-2">
           Every piece, chosen for the ceremony.
         </p>

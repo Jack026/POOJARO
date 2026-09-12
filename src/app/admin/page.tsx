@@ -42,23 +42,25 @@ export default function AdminDashboardPage() {
           fetch('/api/admin/inventory?lowStock=true').catch(() => null),
         ]);
 
-        // Mock data fallback for UI development
-        const analytics = analyticsRes?.ok ? await analyticsRes.json() : {
-          revenue: 12500000, // ₹1,25,000
-          orders: 145,
-          aov: 86206, // ₹862
-          customers: 120,
-          revenueByDay: Array.from({ length: 30 }).map((_, i) => ({
-            day: i,
-            value: Math.floor(Math.random() * 500000) + 100000,
-          })),
-        };
+        let analytics: any = null;
+        if (analyticsRes && analyticsRes.ok) {
+          analytics = await analyticsRes.json();
+        }
 
         const ordersRaw = ordersRes?.ok ? await ordersRes.json() : null;
-        const orders = ordersRaw?.items ?? ordersRaw ?? [];
+        const orders = ordersRaw?.items ?? (Array.isArray(ordersRaw) ? ordersRaw : []);
 
         const inventoryRaw = inventoryRes?.ok ? await inventoryRes.json() : null;
-        const lowStock = Array.isArray(inventoryRaw) ? inventoryRaw : (inventoryRaw?.items ?? []);
+        const productsList = inventoryRaw?.products?.items ?? (Array.isArray(inventoryRaw?.products) ? inventoryRaw.products : []);
+        const lowStock = productsList
+          .filter((p: any) => p.stock <= (p.lowStockThreshold || 5))
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku || '—',
+            stock: p.stock,
+            threshold: p.lowStockThreshold || 5,
+          }));
 
         setData({ analytics, orders, lowStock });
       } catch (e) {
@@ -117,7 +119,8 @@ export default function AdminDashboardPage() {
           <h3 className="text-lg font-semibold text-brown mb-6">Revenue (Last 30 Days)</h3>
           <div className="h-64 w-full flex items-end gap-1">
             {analytics?.revenueByDay?.map((day: any, i: number) => {
-              const heightPercent = maxRevenue > 0 ? (day.value / maxRevenue) * 100 : 0;
+              const val = day.revenue ?? day.value ?? 0;
+              const heightPercent = maxRevenue > 0 ? (val / maxRevenue) * 100 : 0;
               return (
                 <div key={i} className="group relative flex-1 flex flex-col justify-end h-full">
                   <div 
@@ -126,7 +129,7 @@ export default function AdminDashboardPage() {
                   />
                   {/* Tooltip */}
                   <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#24201D] text-white text-xs py-1 px-2 rounded pointer-events-none whitespace-nowrap z-10 transition-opacity">
-                    {formatMoney(day.value)}
+                    {formatMoney(val)}
                   </div>
                 </div>
               );

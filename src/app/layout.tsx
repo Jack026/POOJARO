@@ -1,28 +1,66 @@
 import type { Metadata, Viewport } from 'next';
-
 import { fontVariables } from '@/lib/fonts';
-
+import { publicEnv } from '@/lib/env';
 import './globals.css';
 
-/**
- * The one true root layout — the only place in the app allowed to render
- * <html>/<body>. It is deliberately bare: the storefront and the admin panel
- * are two different experiences, so each owns its own chrome in its own layout
- * (app/(site)/layout.tsx and app/admin/layout.tsx) rather than sharing one.
- *
- * Nesting <html> inside <html> is exactly the hydration error this structure
- * fixes — admin used to declare its own document shell while living inside the
- * storefront root. Route groups keep the URLs unchanged ((site) is stripped
- * from the path) while letting the chrome apply to storefront routes only.
- */
 export const metadata: Metadata = {
-  title: { default: 'POOJARO', template: '%s | POOJARO' },
+  metadataBase: new URL(publicEnv.siteUrl),
+  title: {
+    default: 'POOJARO — Every Ritual. Everything You Need.',
+    template: '%s | POOJARO',
+  },
+  description:
+    'Authentic Indian Puja Samagri and thoughtfully curated Vedic ritual kits delivered across India. Pure havan samagri, handcrafted brass, and complete ceremony essentials.',
+  keywords: [
+    'puja samagri online',
+    'puja kits india',
+    'havan samagri',
+    'diwali puja kit',
+    'satyanarayan puja kit',
+    'griha pravesh puja kit',
+    'brass pooja thali',
+    'vedic ritual essentials',
+    'poojaro',
+  ],
+  authors: [{ name: 'POOJARO', url: publicEnv.siteUrl }],
+  creator: 'POOJARO',
+  publisher: 'POOJARO',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: publicEnv.siteUrl,
+    siteName: 'POOJARO',
+    title: 'POOJARO — Every Ritual. Everything You Need.',
+    description:
+      'Authentic Indian Puja Samagri and thoughtfully curated Vedic ritual kits delivered across India.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'POOJARO — Every Ritual. Everything You Need.',
+    description:
+      'Authentic Indian Puja Samagri and thoughtfully curated Vedic ritual kits delivered across India.',
+  },
+  formatDetection: {
+    telephone: true,
+    date: true,
+    address: true,
+    email: true,
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Pinch-zoom must stay available. Locking it is an accessibility failure (§49).
   maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#faf8f3' },
@@ -34,9 +72,6 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={fontVariables} suppressHydrationWarning>
-      {/* bg-ivory is the storefront default and the surface the global 404 /
-          error boundaries sit on; the admin layout paints its own white canvas
-          over it. */}
       <body className="min-h-dvh bg-ivory text-brown antialiased">{children}</body>
     </html>
   );

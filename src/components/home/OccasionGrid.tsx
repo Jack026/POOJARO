@@ -4,7 +4,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/ui/Reveal';
 import { Photo } from '@/components/ui/Photo';
 import { isKnownPhoto } from '@/lib/photos';
-import { PeacockCornerOrnament } from '@/components/peacock';
+import { PeacockCornerOrnament, PeacockDivider } from '@/components/peacock';
 
 const occasions = [
   {
@@ -55,8 +55,9 @@ export function OccasionGrid() {
           title="Every Ritual, Perfectly Prepared"
           copy="Select the special moment you are preparing for, and we will bring together everything you need."
         />
+        <PeacockDivider maxWidth={260} className="my-2 opacity-80" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8">
           {occasions.map((o, i) => (
             <Reveal key={o.id} effect="up" delay={i * 0.08}>
               <Link href={o.href} className="group relative block rounded-2xl overflow-hidden bg-sand-soft/30 border border-sand-deep/40 hover:border-sand-deep hover:shadow-card transition-all duration-300">

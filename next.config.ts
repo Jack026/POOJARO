@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     // Local assets only by default. Add a remotePatterns entry when product
     // imagery moves to Firebase Storage / a CDN.
     formats: ['image/avif', 'image/webp'],
+    qualities: [25, 50, 75, 85, 90, 95],
     remotePatterns: [
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
       { protocol: 'https', hostname: 'storage.googleapis.com' },

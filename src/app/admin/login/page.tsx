@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Field';
 
+import { PeacockMini } from '@/components/peacock';
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -40,9 +42,10 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <div className="mb-8 text-center">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <PeacockMini size={54} className="mb-2" />
           <h1 className="font-display text-4xl font-bold tracking-tight text-brown">POOJARO</h1>
-          <p className="mt-2 text-sm text-brown-muted">Admin Portal</p>
+          <p className="mt-1 text-sm text-brown-muted">Admin Portal</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -59,7 +62,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@poojaro.com"
+                placeholder="owner@poojaro.in"
               />
             )}
           </Field>
@@ -85,6 +88,27 @@ export default function AdminLoginPage() {
             Sign In
           </Button>
         </form>
+
+        {/* Demo Credentials & Quick Auto-fill 
+        <div className="mt-6 rounded-lg border border-gold/30 bg-gold-wash/50 p-3 text-center text-xs text-brown">
+          <p className="font-semibold text-brown">Admin Credentials</p>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 text-brown-muted">
+            <span>Email: <strong className="text-brown">owner@poojaro.in</strong></span>
+            <span>•</span>
+            <span>Password: <strong className="text-brown">admin123</strong></span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('owner@poojaro.in');
+              setPassword('admin123');
+              setError('');
+            }}
+            className="mt-2 text-xs font-semibold text-gold-deep hover:underline focus:outline-none"
+          >
+            Click here to auto-fill
+          </button>
+        </div>*/}
       </div>
     </div>
   );

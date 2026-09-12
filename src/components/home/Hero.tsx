@@ -1,47 +1,22 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type MotionValue,
-  type Variants,
-} from 'motion/react';
-import { ArrowRight, RefreshCw, ShieldCheck, Sparkles, Truck } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform, type Variants } from 'motion/react';
+import { ArrowRight, Truck } from 'lucide-react';
 
-import { buttonClasses } from '@/components/ui/button-styles';
-import { Photo } from '@/components/ui/Photo';
-import { PeacockMaster } from '@/components/peacock';
-import { cn } from '@/lib/cn';
 import { EASE_OUT_QUART, EASE_OUT_SOFT } from '@/lib/motion';
 import { useHasFinePointer, useMediaQuery } from '@/hooks/useMediaQuery';
 
-/**
- * The homepage hero — the one brown "stage" on the page (§5).
- *
- * The composition is a lit altar seen through a portal: the brass thali sits in
- * a circle of its own warm light, ringed by a slow gold orbit, with a few
- * samagri medallions floating around it. Everything expensive to watch — the
- * orbit, the float, the pointer parallax, the rising embers — is a progressive
- * enhancement that only switches on for a fine pointer and never for someone who
- * asked for reduced motion (§42, §49). The server and first client paint render
- * the calm, still version, so there is no layout shift and no hydration flash.
- */
-
-/** Rising embers around the diya. Deterministic (no Math.random) so the array is
- *  identical every render; it is only mounted client-side, past reduced-motion. */
-const EMBERS = Array.from({ length: 12 }, (_, i) => ({
+// Gentle falling lotus petals drifting through the morning sunlight
+const PETALS = Array.from({ length: 8 }, (_, i) => ({
   id: i,
-  left: 8 + ((i * 53) % 84), // 8–92% across the portal box
-  size: 2 + (i % 3), // 2–4px
-  delay: (i % 6) * 0.8, // 0–4s
-  duration: 6 + (i % 4) * 1.5, // 6–10.5s
-  drift: (i % 2 ? 1 : -1) * (6 + (i % 3) * 5), // horizontal sway
-  rise: 90 + (i % 4) * 35, // 90–195px climb
-  startBottom: 18 + (i % 5) * 9, // 18–54% up from the base
+  left: 8 + ((i * 37) % 84),
+  size: 14 + (i % 3) * 4,
+  delay: (i % 4) * 1.8,
+  duration: 11 + (i % 3) * 3,
+  drift: (i % 2 ? 1 : -1) * (18 + (i % 3) * 12),
 }));
 
 export function Hero() {
@@ -49,23 +24,22 @@ export function Hero() {
   const finePointer = useHasFinePointer();
   const [mounted, setMounted] = useState(false);
 
-  // Both hooks report `false` on the server and on the first client render, so
-  // parallax and embers begin off and enable after mount — never mid-paint.
   useEffect(() => setMounted(true), []);
   const parallax = mounted && finePointer && !reduced;
 
-  // Normalised pointer position (−0.5…0.5), spring-smoothed so the scene lags
-  // the cursor like something with weight rather than snapping to it.
+  // Pointer parallax for desktop (dual plane depth)
   const px = useMotionValue(0);
   const py = useMotionValue(0);
-  const sx = useSpring(px, { stiffness: 90, damping: 18, mass: 0.5 });
-  const sy = useSpring(py, { stiffness: 90, damping: 18, mass: 0.5 });
+  const sx = useSpring(px, { stiffness: 70, damping: 20, mass: 0.5 });
+  const sy = useSpring(py, { stiffness: 70, damping: 20, mass: 0.5 });
 
-  // Depth layers: the closer something reads, the more it travels.
-  const portalX = useTransform(sx, (v) => v * 36);
-  const portalY = useTransform(sy, (v) => v * 36);
-  const glowX = useTransform(sx, (v) => v * -24); // behind, so it drifts opposite
-  const glowY = useTransform(sy, (v) => v * -24);
+  // Background shifts gently
+  const bgX = useTransform(sx, (v) => v * 12);
+  const bgY = useTransform(sy, (v) => v * 8);
+
+  // Floating peacock shifts with greater depth in opposite direction
+  const peacockX = useTransform(sx, (v) => v * -20);
+  const peacockY = useTransform(sy, (v) => v * -14);
 
   function handlePointerMove(e: React.PointerEvent<HTMLElement>) {
     if (!parallax) return;
@@ -73,367 +47,414 @@ export function Hero() {
     px.set((e.clientX - r.left) / r.width - 0.5);
     py.set((e.clientY - r.top) / r.height - 0.5);
   }
+
   function resetPointer() {
     px.set(0);
     py.set(0);
   }
 
-  // Masked line-by-line headline (§43): each line rises out of a clip. Reduced
-  // motion keeps the reveal but swaps the travel for a plain fade.
+  // Headline reveal animations
   const headline: Variants = {
     hidden: {},
     visible: {
       transition: {
         staggerChildren: reduced ? 0 : 0.12,
-        delayChildren: reduced ? 0 : 0.28,
+        delayChildren: reduced ? 0 : 0.18,
       },
     },
   };
   const line: Variants = reduced
     ? { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.25 } } }
-    : { hidden: { y: '118%' }, visible: { y: '0%', transition: { duration: 0.9, ease: EASE_OUT_QUART } } };
+    : { hidden: { y: '110%' }, visible: { y: '0%', transition: { duration: 0.9, ease: EASE_OUT_QUART } } };
 
   return (
     <section
       onPointerMove={handlePointerMove}
       onPointerLeave={resetPointer}
-      className="relative isolate flex min-h-[88vh] items-center overflow-hidden bg-brown py-24 text-ivory lg:min-h-[92vh] lg:py-20"
+      className="relative isolate flex min-h-[92vh] sm:min-h-[88vh] lg:min-h-[92vh] items-center overflow-hidden bg-[#FAF4EB] py-8 sm:py-12 lg:py-16 text-[#3A2118]"
     >
-      {/* --- Background stage ------------------------------------------------ */}
-      {/* Depth vignette: brown deepens to charcoal at the edges so the centre
-          reads as lit and the section has a horizon. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_70%_35%,transparent_35%,rgb(36_32_29/0.55)_100%)]"
-      />
-      <div aria-hidden className="texture-paper pointer-events-none absolute inset-0 -z-10 opacity-50" />
+      {/* ============================================================ */}
+      {/* CLEAN TEMPLE BACKGROUND SCENES (NO STATIC PEACOCK)           */}
+      {/* Desktop (lg+): 1920x1080 Widescreen Temple Courtyard         */}
+      {/* Mobile (<lg): 1080x1920 Vertical Portrait Temple Courtyard   */}
+      {/* ============================================================ */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 select-none overflow-hidden"
+        style={parallax ? { x: bgX, y: bgY, scale: 1.03 } : undefined}
+      >
+        {/* Desktop Landscape Scene (lg: 1024px and up) */}
+        <div className="hidden lg:block absolute inset-0">
+          <Image
+            src="/images/1-real.png"
+            alt=""
+            fill
+            priority
+            quality={95}
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </div>
 
-      <div className="container-page relative z-10 w-full">
-        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          {/* --- Editorial column ------------------------------------------- */}
-          <div className="max-w-xl">
-            {/* Eyebrow */}
+        {/* Mobile / Tablet Portrait Scene (< 1024px) */}
+        <div className="block lg:hidden absolute inset-0">
+          <Image
+            src="/images/hero-clean-mobile.png"
+            alt=""
+            fill
+            priority
+            quality={95}
+            sizes="100vw"
+            className="object-cover object-bottom"
+          />
+        </div>
+      </motion.div>
+
+      {/* Soft gradient readability overlays on mobile */}
+      <div
+        aria-hidden="true"
+        className="block lg:hidden pointer-events-none absolute inset-x-0 top-0 h-[48%] bg-gradient-to-b from-[#FAF4EB]/85 via-[#FAF4EB]/45 to-transparent -z-10"
+      />
+      <div
+        aria-hidden="true"
+        className="block lg:hidden pointer-events-none absolute inset-x-0 bottom-0 h-[24%] bg-gradient-to-t from-[#FAF4EB]/85 via-[#FAF4EB]/40 to-transparent -z-10"
+      />
+
+      {/* Floating Lotus Petals */}
+      {!reduced && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden z-[2]">
+          {PETALS.map((p) => (
             <motion.div
-              className="mb-7 flex items-center gap-3"
+              key={p.id}
+              className="absolute pointer-events-none select-none"
+              style={{ left: `${p.left}%`, top: '-5%' }}
+              animate={{
+                y: ['0vh', '105vh'],
+                x: [0, p.drift, -p.drift, 0],
+                rotate: [0, 60, -45, 120],
+                opacity: [0, 0.85, 0.85, 0],
+              }}
+              transition={{
+                duration: p.duration,
+                delay: p.delay,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            >
+              <svg width={p.size} height={p.size * 1.3} viewBox="0 0 20 26" fill="currentColor">
+                <path
+                  d="M10 0 C16 6 20 14 17 22 C14 26 6 26 3 22 C0 14 4 6 10 0 Z"
+                  fill="rgba(244, 180, 192, 0.72)"
+                />
+                <path
+                  d="M10 2 C13 8 14 16 10 24"
+                  stroke="rgba(226, 134, 155, 0.45)"
+                  strokeWidth="0.8"
+                  fill="none"
+                />
+              </svg>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Main Content Grid */}
+      <div className="container-page relative z-10 w-full h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] items-center gap-8 lg:gap-10 xl:gap-14">
+          {/* Left Column: Editorial & Actions */}
+          <div className="max-w-xl mx-auto lg:mx-0 w-full">
+            {/* Eyebrow: MORE THAN A STORE — ❖ */}
+            <motion.div
+              className="flex items-center gap-2.5 text-xs uppercase tracking-[0.24em] text-[#8A6A52] font-semibold mb-3.5 sm:mb-5"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.01 : 0.5, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.15 }}
+              transition={{ duration: reduced ? 0.01 : 0.5, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.1 }}
             >
-              <span aria-hidden className="h-px w-8 bg-gold-soft/60" />
-              <span className="inline-flex items-center gap-1.5 eyebrow text-gold-soft">
-                <Sparkles aria-hidden className="h-3.5 w-3.5" />
-                Authentic Puja Samagri
-              </span>
+              <span>MORE THAN A STORE</span>
+              <span className="h-[1px] w-10 sm:w-12 bg-[#8A6A52]/50" />
+              <span className="text-[10px] text-[#B78332]">❖</span>
             </motion.div>
 
-            {/* Headline — masked line reveal. The explicit text-ivory is load-
-                bearing: globals.css sets `h1 { color: brown }` in the base layer,
-                and on this brown stage the heading would blend into it without a
-                utility-layer colour to override that. The accent word keeps its
-                own gold. */}
+            {/* Headline */}
             <motion.h1
-              className="font-display text-display-xl leading-[0.95] text-ivory"
+              className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-[4.4rem] leading-[1.06] text-[#382015] tracking-tight font-normal"
               variants={headline}
               initial="hidden"
               animate="visible"
             >
-              <span className="block overflow-hidden pb-[0.08em]">
+              <span className="block overflow-hidden pb-[0.06em]">
                 <motion.span variants={line} className="block">
-                  Every Ritual.
+                  Sacred Rituals.
                 </motion.span>
               </span>
-              <span className="block overflow-hidden pb-[0.08em]">
+              <span className="block overflow-hidden pb-[0.06em]">
                 <motion.span variants={line} className="block">
-                  <span className="font-display italic text-gold-soft">Everything</span> You Need.
+                  Beautifully Prepared.
                 </motion.span>
               </span>
             </motion.h1>
 
-            {/* Lede */}
-            <motion.p
-              className="mt-7 max-w-md text-lede text-sand-soft"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.01 : 0.55, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.6 }}
-            >
-              Authentic puja samagri and thoughtfully prepared ritual kits — brought together for the
-              moments that matter.
-            </motion.p>
-
-            {/* CTAs */}
+            {/* ============================================================ */}
+            {/* MOBILE FLOATING PEACOCK (PNG with Levitation Animation)     */}
+            {/* Displayed between headline and lede on mobile screens        */}
+            {/* ============================================================ */}
             <motion.div
-              className="mt-9 flex flex-col gap-3 sm:flex-row sm:gap-4"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.01 : 0.5, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.72 }}
+              className="block lg:hidden my-6 sm:my-8 relative w-full max-w-[340px] sm:max-w-[420px] mx-auto aspect-[1024/682]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduced ? 0.01 : 0.7, ease: EASE_OUT_SOFT, delay: 0.2 }}
             >
-              {/* Gold on brown: the one accent CTA the page is allowed (§7). */}
-              <Link href="/kits" className={buttonClasses({ variant: 'gold', size: 'lg' })}>
-                Shop Puja Kits
-                <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
-              {/* Secondary re-skinned for the dark stage — the default outline is
-                  tuned for ivory and would vanish here. */}
-              <Link
-                href="/ritual-finder"
-                className={buttonClasses({
-                  variant: 'secondary',
-                  size: 'lg',
-                  className:
-                    'border-ivory/25 bg-transparent text-ivory hover:border-ivory/55 hover:bg-ivory/10',
-                })}
+              {/* Floating Animation Container */}
+              <motion.div
+                className="relative w-full h-full"
+                animate={
+                  reduced
+                    ? undefined
+                    : {
+                        y: [-6, 6, -6],
+                        rotate: [-0.4, 0.4, -0.4],
+                      }
+                }
+                transition={{
+                  y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
+                  rotate: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+                }}
               >
-                Find Your Ritual
-              </Link>
-            </motion.div>
+                {/* Divine pulsating golden glow aura */}
+                <motion.div
+                  aria-hidden="true"
+                  animate={
+                    reduced
+                      ? undefined
+                      : {
+                          opacity: [0.35, 0.65, 0.35],
+                          scale: [0.95, 1.05, 0.95],
+                        }
+                  }
+                  transition={{
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className="absolute inset-[-10%] rounded-full bg-[radial-gradient(circle,#F5DEC2_0%,transparent_70%)] blur-xl pointer-events-none -z-10"
+                />
 
-            {/* Trust row */}
-            <motion.ul
-              className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-sand-soft"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : 0.9 }}
-            >
-              {[
-                { Icon: Truck, label: 'Pan-India delivery' },
-                { Icon: ShieldCheck, label: 'Secure checkout' },
-                { Icon: RefreshCw, label: 'Easy returns' },
-              ].map(({ Icon, label }) => (
-                <li key={label} className="inline-flex items-center gap-2">
-                  <Icon aria-hidden className="h-4 w-4 text-gold-soft" />
-                  {label}
-                </li>
-              ))}
-            </motion.ul>
-          </div>
+                {/* Floating Peacock Transparent PNG */}
+                <Image
+                  src="/images/peacock/peacock-transparent.png"
+                  alt="POOJARO Sacred Golden Peacock"
+                  fill
+                  priority
+                  quality={100}
+                  sizes="(max-width: 1023px) 90vw, 420px"
+                  className="object-contain object-center drop-shadow-[0_16px_36px_rgba(58,33,24,0.22)]"
+                  unoptimized
+                />
+              </motion.div>
 
-          {/* --- Portal column ---------------------------------------------- */}
-          <div className="relative mx-auto aspect-square w-[min(78vw,20rem)] lg:w-full lg:max-w-[34rem]">
-            {/* Bleed glow — larger than the portal and unclipped, so the light
-                spills past the frame onto the brown. */}
-            <motion.div
-              aria-hidden
-              className="glow-diya absolute -inset-[20%] -z-10 blur-2xl"
-              style={parallax ? { x: glowX, y: glowY } : undefined}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: reduced ? 0.01 : 1.4, ease: EASE_OUT_SOFT }}
-            />
-
-            {/* Signature POOJARO Indian Mehendi Peacock Master Artwork */}
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute -inset-[28%] lg:-inset-[36%] -z-10 flex items-center justify-center overflow-visible"
-              style={parallax ? { x: glowX, y: glowY } : undefined}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 0.88, scale: 1 }}
-              transition={{ duration: reduced ? 0.01 : 1.6, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.2 }}
-            >
-              <PeacockMaster
-                variant="gold-on-dark"
-                className="w-[145%] h-[145%] max-w-none transform -rotate-6 md:-rotate-3 drop-shadow-[0_4px_24px_rgba(183,131,50,0.22)]"
+              {/* Dynamic floating contact shadow */}
+              <motion.div
+                aria-hidden="true"
+                animate={
+                  reduced
+                    ? undefined
+                    : {
+                        scale: [1.05, 0.92, 1.05],
+                        opacity: [0.4, 0.2, 0.4],
+                      }
+                }
+                transition={{
+                  duration: 4.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className="absolute -bottom-2 left-[15%] right-[15%] h-5 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,23,11,0.28)_0%,transparent_70%)] blur-sm pointer-events-none"
               />
             </motion.div>
 
-            {/* Slow gold orbit — a hairline ring that turns forever. Purely
-                decorative, and stilled for reduced motion. */}
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute -inset-[6%] rounded-full border border-dashed border-gold-soft/20"
-              animate={parallax || !reduced ? { rotate: 360 } : undefined}
-              transition={{ duration: 64, ease: 'linear', repeat: Infinity }}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-[1.5%] rounded-full border border-gold-soft/15"
-            />
-
-            {/* The portal itself */}
-            <motion.div
-              className="absolute inset-0"
-              style={parallax ? { x: portalX, y: portalY } : undefined}
+            {/* Subtitle / Lede */}
+            <motion.p
+              className="mt-3.5 sm:mt-5 text-[#5C3D2E] text-base sm:text-lg leading-relaxed max-w-lg font-normal"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduced ? 0.01 : 0.55, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.35 }}
             >
-              <motion.div
-                className="relative h-full w-full"
-                initial={{ opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: reduced ? 0.01 : 1, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.2 }}
+              Authentic Puja Samagri. Curated with devotion.<br className="hidden sm:inline" />
+              For a more peaceful, prosperous and mindful life.
+            </motion.p>
+
+            {/* Action Buttons */}
+            <motion.div
+              className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduced ? 0.01 : 0.5, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.48 }}
+            >
+              <Link
+                href="/shop"
+                className="px-8 py-3.5 rounded-lg bg-[#5C341F] hover:bg-[#482816] text-[#FAF6F0] font-medium text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
               >
-                <div className="relative h-full w-full overflow-hidden rounded-full bg-sand-soft shadow-overlay ring-1 ring-gold-soft/40">
-                  {/* Photo carries its own width/height from the manifest, so it
-                      is sized with h-full/w-full + object-cover rather than
-                      `fill` (which next/image rejects alongside dimensions). */}
-                  <Photo
-                    name="hero-thali"
-                    sizes="(min-width: 1024px) 34vw, 78vw"
-                    priority
-                    className="h-full w-full scale-[1.03] object-cover"
-                  />
-                  {/* Warm lamp bloom over the centre, flickering like a flame. */}
-                  <div aria-hidden className="glow-diya animate-flicker absolute inset-0 opacity-60" />
-                  {/* Grounding vignette + inner rim highlight. */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 rounded-full bg-gradient-to-t from-brown/45 via-transparent to-transparent"
-                  />
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 rounded-full ring-1 ring-inset ring-ivory/10"
-                  />
-                </div>
-              </motion.div>
+                Shop Now <ArrowRight className="w-4 h-4 text-[#E6C98A]" />
+              </Link>
+              <Link
+                href="/kits"
+                className="px-8 py-3.5 rounded-lg bg-[#F8F1E7]/90 hover:bg-[#F8F1E7] border border-[#8C6D53]/60 hover:border-[#5C341F] text-[#382015] font-medium text-sm sm:text-base flex items-center justify-center transition-all duration-300 shadow-sm backdrop-blur-sm"
+              >
+                Explore Puja Kits
+              </Link>
             </motion.div>
 
-            {/* Floating samagri medallions */}
-            <Medallion
-              name="sam-marigold"
-              className="right-[2%] top-[-2%] h-24 w-24 md:h-28 md:w-28"
-              sizeHint="128px"
-              sx={sx}
-              sy={sy}
-              depth={80}
-              parallax={parallax}
-              reduced={reduced}
-              delay={0.0}
-              floatY={-12}
-              floatDuration={6.5}
-            />
-            <Medallion
-              name="sam-kumkum"
-              className="bottom-[4%] left-[-5%] h-20 w-20 md:h-24 md:w-24"
-              sizeHint="112px"
-              sx={sx}
-              sy={sy}
-              depth={112}
-              parallax={parallax}
-              reduced={reduced}
-              delay={0.12}
-              floatY={14}
-              floatDuration={7.5}
-            />
-            <Medallion
-              name="sam-diya-brass"
-              className="bottom-[20%] right-[-7%] h-16 w-16 md:h-20 md:w-20"
-              sizeHint="96px"
-              sx={sx}
-              sy={sy}
-              depth={64}
-              parallax={parallax}
-              reduced={reduced}
-              delay={0.24}
-              floatY={-10}
-              floatDuration={8}
-            />
-
-            {/* Rising embers — client-only, and only past reduced motion. */}
-            {mounted && !reduced && (
-              <div aria-hidden className="pointer-events-none absolute inset-0 z-20 overflow-visible">
-                {EMBERS.map((e) => (
-                  <motion.span
-                    key={e.id}
-                    className="absolute rounded-full bg-gold-soft/70 blur-[0.5px]"
-                    style={{
-                      left: `${e.left}%`,
-                      bottom: `${e.startBottom}%`,
-                      width: e.size,
-                      height: e.size,
-                    }}
-                    initial={{ opacity: 0, y: 0, x: 0 }}
-                    animate={{ opacity: [0, 0.8, 0], y: [0, -e.rise], x: [0, e.drift] }}
-                    transition={{
-                      duration: e.duration,
-                      delay: e.delay,
-                      repeat: Infinity,
-                      ease: 'easeOut',
-                    }}
-                  />
-                ))}
+            {/* Trust Badges Row */}
+            <motion.div
+              className="mt-8 sm:mt-12 pt-4 flex items-center justify-between sm:justify-start gap-4 sm:gap-8 max-w-lg border-t border-[#8C6D53]/20 bg-[#FAF4EB]/70 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none p-3 sm:p-0 rounded-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : 0.6 }}
+            >
+              {/* Badge 1: Authentic Products */}
+              <div className="flex flex-col items-center text-center gap-1.5 flex-1">
+                <div className="w-8 h-8 flex items-center justify-center text-[#B78332]">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 3c1.5 3 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0c0-3 3-6 4.5-9z" />
+                    <path d="M12 12c-2.5-2-6-2-8 0 2 3.5 5 4.5 8 2z" />
+                    <path d="M12 12c2.5-2 6-2 8 0-2 3.5-5 4.5-8 2z" />
+                    <path d="M12 16c-3 1-6 3-8 5 3 0 6-.5 8-2z" />
+                    <path d="M12 16c3 1 6 3 8 5-3 0-6-.5-8-2z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-serif text-[#382015] leading-tight font-medium">
+                  Authentic<br />Products
+                </span>
               </div>
-            )}
+
+              <div className="h-8 w-px bg-[#8C6D53]/25" />
+
+              {/* Badge 2: Free Shipping Above ₹999 */}
+              <div className="flex flex-col items-center text-center gap-1.5 flex-1">
+                <div className="w-8 h-8 flex items-center justify-center text-[#B78332]">
+                  <Truck className="w-6 h-6" strokeWidth={1.5} />
+                </div>
+                <span className="text-xs font-serif text-[#382015] leading-tight font-medium">
+                  Free Shipping<br />Above ₹999
+                </span>
+              </div>
+
+              <div className="h-8 w-px bg-[#8C6D53]/25" />
+
+              {/* Badge 3: Trusted by Devotees */}
+              <div className="flex flex-col items-center text-center gap-1.5 flex-1">
+                <div className="w-8 h-8 flex items-center justify-center text-[#B78332]">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+                  </svg>
+                </div>
+                <span className="text-xs font-serif text-[#382015] leading-tight font-medium">
+                  Trusted<br />by Devotees
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* DESKTOP FLOATING PEACOCK (Right Column with Dual Parallax)   */}
+          {/* ============================================================ */}
+          <div className="hidden lg:flex flex-col items-end justify-center relative w-full h-full min-h-[500px]">
+            {/* Top Right Tagline: A LITTLE MORE DIVINITY IN EVERY HOME — ❖ */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-right pb-4 select-none pointer-events-none"
+            >
+              <p className="font-serif text-[11px] uppercase tracking-[0.28em] text-[#8A6A52] font-semibold leading-relaxed">
+                A LITTLE MORE<br />DIVINITY<br />IN EVERY HOME
+              </p>
+              <div className="mt-2 flex items-center justify-end gap-2 text-[#8A6A52]/40">
+                <span className="h-[1px] w-8 bg-[#8A6A52]/40" />
+                <span className="text-[10px] text-[#B78332]">❖</span>
+                <span className="h-[1px] w-8 bg-[#8A6A52]/40" />
+              </div>
+            </motion.div>
+
+            {/* Desktop Floating Peacock Stage */}
+            <motion.div
+              className="relative w-full max-w-[700px] xl:max-w-[720px] aspect-[1024/682]"
+              style={parallax ? { x: peacockX, y: peacockY } : undefined}
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: reduced ? 0.01 : 0.8, ease: EASE_OUT_SOFT, delay: 0.15 }}
+            >
+              {/* Continuous Gentle Hovering / Floating Motion Container */}
+              <motion.div
+                className="relative w-full h-full"
+                animate={
+                  reduced
+                    ? undefined
+                    : {
+                        y: [-8, 8, -8],
+                        rotate: [-0.6, 0.6, -0.6],
+                      }
+                }
+                transition={{
+                  y: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
+                  rotate: { duration: 6.5, repeat: Infinity, ease: 'easeInOut' },
+                }}
+              >
+                {/* Divine warm glow behind the floating peacock */}
+                <motion.div
+                  aria-hidden="true"
+                  animate={
+                    reduced
+                      ? undefined
+                      : {
+                          opacity: [0.35, 0.65, 0.35],
+                          scale: [0.95, 1.05, 0.95],
+                        }
+                  }
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className="absolute inset-[-12%] rounded-full bg-[radial-gradient(circle,#F5DEC2_0%,transparent_100%)] blur-2xl pointer-events-none -z-10"
+                />
+
+                {/* Floating Peacock Transparent PNG */}
+                <Image
+                  src="/images/peacock/peacock-transparent.png"
+                  alt="POOJARO Sacred Golden Peacock"
+                  fill
+                  priority
+                  quality={95}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-contain object-center drop-shadow-[0_24px_45px_rgba(58,33,24,0.22)] transition-transform duration-700 ease-out-soft hover:scale-[1.03]"
+                  unoptimized
+                />
+              </motion.div>
+
+              {/* Dynamic floating ground shadow that expands/contracts as peacock floats */}
+              <motion.div
+                aria-hidden="true"
+                animate={
+                  reduced
+                    ? undefined
+                    : {
+                        scale: [1.06, 0.92, 1.06],
+                        opacity: [0.42, 0.22, 0.42],
+                      }
+                }
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className="absolute bottom-[-3%] left-[12%] right-[12%] h-7 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,23,11,0.32)_0%,transparent_70%)] blur-md pointer-events-none"
+              />
+            </motion.div>
           </div>
         </div>
       </div>
-
-      {/* Scroll cue — a gold segment sliding down a hairline. Desktop only. */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-6 z-10 hidden justify-center lg:flex"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: reduced ? 0.01 : 0.6, delay: reduced ? 0 : 1.1 }}
-      >
-        <div className="flex flex-col items-center gap-2 text-sand-soft/70">
-          <span className="text-[0.625rem] uppercase tracking-[0.25em]">Explore</span>
-          <span className="relative block h-9 w-px overflow-hidden bg-ivory/15">
-            <motion.span
-              className="absolute inset-x-0 top-0 block h-3 bg-gold-soft"
-              animate={reduced ? undefined : { y: [-12, 36] }}
-              transition={reduced ? undefined : { duration: 1.9, ease: 'easeInOut', repeat: Infinity }}
-            />
-          </span>
-        </div>
-      </motion.div>
     </section>
-  );
-}
-
-/**
- * A small circular samagri photo that floats near the portal.
- *
- * Three transforms are deliberately kept on three separate elements so they
- * never fight over the same property: the outer wrapper carries pointer
- * parallax (translate via motion values), the middle wrapper carries the
- * continuous float (an animated `y` loop), and the inner element carries the
- * one-shot entrance (opacity + scale). Reduced motion drops the first two and
- * collapses the third.
- */
-function Medallion({
-  name,
-  className,
-  sizeHint,
-  sx,
-  sy,
-  depth,
-  parallax,
-  reduced,
-  delay,
-  floatY,
-  floatDuration,
-}: {
-  name: string;
-  className?: string;
-  sizeHint: string;
-  sx: MotionValue<number>;
-  sy: MotionValue<number>;
-  depth: number;
-  parallax: boolean;
-  reduced: boolean;
-  delay: number;
-  floatY: number;
-  floatDuration: number;
-}) {
-  const x = useTransform(sx, (v) => v * depth);
-  const y = useTransform(sy, (v) => v * depth);
-
-  return (
-    <motion.div className={cn('absolute', className)} style={parallax ? { x, y } : undefined}>
-      <motion.div
-        className="h-full w-full"
-        animate={reduced ? undefined : { y: [0, floatY, 0] }}
-        transition={
-          reduced ? undefined : { duration: floatDuration, ease: 'easeInOut', repeat: Infinity, delay }
-        }
-      >
-        <motion.div
-          className="relative h-full w-full overflow-hidden rounded-full bg-sand-soft shadow-lift ring-1 ring-gold-soft/30"
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: reduced ? 0.01 : 0.7, ease: EASE_OUT_SOFT, delay: reduced ? 0 : 0.7 + delay }}
-        >
-          <Photo name={name} sizes={sizeHint} className="h-full w-full object-cover" />
-          <div aria-hidden className="absolute inset-0 rounded-full ring-1 ring-inset ring-ivory/15" />
-        </motion.div>
-      </motion.div>
-    </motion.div>
   );
 }

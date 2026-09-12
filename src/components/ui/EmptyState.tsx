@@ -14,7 +14,7 @@ import { PackageOpen, SearchX, ShoppingBag, WifiOff } from 'lucide-react';
 
 import { cn } from '@/lib/cn';
 import { buttonClasses } from './button-styles';
-import { PeacockMini } from '@/components/peacock';
+import { PeacockMini, LotusMandala, PeacockSingleFeather } from '@/components/peacock';
 
 export const EMPTY_COPY = {
   cart: {
@@ -64,7 +64,9 @@ export function EmptyState({ title, body, icon, action, children, size = 'md', c
       )}
     >
       {icon && (
-        <span className="grid h-14 w-14 place-items-center rounded-full bg-sand-soft text-brown-muted">{icon}</span>
+        <span className="flex items-center justify-center p-3 rounded-2xl bg-sand-soft/50 text-brown-muted">
+          {icon}
+        </span>
       )}
       <h2 className={size === 'md' ? 'text-display-sm' : 'font-display text-xl'}>{title}</h2>
       {body && <p className="max-w-sm text-sm text-brown-soft">{body}</p>}
@@ -86,7 +88,7 @@ export function EmptyCart({ className }: { className?: string }) {
   return (
     <EmptyState
       className={className}
-      icon={<PeacockMini size={48} />}
+      icon={<LotusMandala variant="hanging" size={68} />}
       title={EMPTY_COPY.cart.title}
       body={EMPTY_COPY.cart.body}
       action={{ href: '/shop', label: 'Shop puja kits' }}

@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface AnnouncementBarProps {
   announcement: {
@@ -15,28 +15,39 @@ interface AnnouncementBarProps {
 export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
   const [isVisible, setIsVisible] = useState(true);
 
-  if (!announcement.isActive || !isVisible || !announcement.text) return null;
+  if (!announcement.isActive || !isVisible) return null;
 
-  const content = (
-    <div className="flex items-center justify-center gap-2 text-[11px] md:text-xs font-medium tracking-wide">
-      <Sparkles className="w-3.5 h-3.5 text-gold-soft" />
-      <span>{announcement.text}</span>
-    </div>
-  );
+  const displayText = announcement.text || 'FREE SHIPPING ON ORDERS ABOVE ₹999';
 
   return (
-    <div className="bg-brown text-ivory relative z-50">
-      <div className="container-page py-2 md:py-2.5 flex items-center justify-center relative">
-        {announcement.href ? (
-          <Link href={announcement.href} className="hover:text-gold-soft transition-colors">
-            {content}
-          </Link>
-        ) : (
-          content
-        )}
+    <div className="bg-[#F6EFE6] border-b border-[#E8DDCF] text-[#422619] relative z-50 select-none">
+      <div className="container-page py-2 flex items-center justify-between text-[11px] md:text-xs">
+        {/* Left / Center Announcement */}
+        <div className="flex items-center justify-center flex-1 md:justify-start lg:justify-center gap-2.5 font-medium tracking-[0.14em] uppercase text-[#3E2215]">
+          <span className="text-gold-deep text-xs">❖</span>
+          {announcement.href ? (
+            <Link href={announcement.href} className="hover:text-gold-deep transition-colors">
+              {displayText}
+            </Link>
+          ) : (
+            <span>{displayText}</span>
+          )}
+          <span className="text-gold-deep text-xs">❖</span>
+        </div>
+
+        {/* Right Pillars / Trust Links */}
+        <div className="hidden lg:flex items-center gap-3 text-[11px] text-[#7A5A46] tracking-wider font-normal">
+          <span>Sacred Products</span>
+          <span className="text-[#C4B2A0]">|</span>
+          <span>Authentic Sources</span>
+          <span className="text-[#C4B2A0]">|</span>
+          <span>Trusted by Devotees</span>
+        </div>
+
+        {/* Dismiss button */}
         <button
           onClick={() => setIsVisible(false)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-ivory/60 hover:text-ivory transition-colors"
+          className="ml-3 p-1 text-[#7A5A46] hover:text-[#422619] transition-colors"
           aria-label="Dismiss announcement"
         >
           <X className="w-3.5 h-3.5" />
