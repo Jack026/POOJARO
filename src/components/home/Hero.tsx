@@ -27,19 +27,14 @@ export function Hero() {
   useEffect(() => setMounted(true), []);
   const parallax = mounted && finePointer && !reduced;
 
-  // Pointer parallax for desktop (dual plane depth)
+  // Pointer parallax for desktop scene
   const px = useMotionValue(0);
   const py = useMotionValue(0);
   const sx = useSpring(px, { stiffness: 70, damping: 20, mass: 0.5 });
   const sy = useSpring(py, { stiffness: 70, damping: 20, mass: 0.5 });
 
-  // Background shifts gently
   const bgX = useTransform(sx, (v) => v * 12);
   const bgY = useTransform(sy, (v) => v * 8);
-
-  // Floating peacock shifts with greater depth in opposite direction
-  const peacockX = useTransform(sx, (v) => v * -20);
-  const peacockY = useTransform(sy, (v) => v * -14);
 
   function handlePointerMove(e: React.PointerEvent<HTMLElement>) {
     if (!parallax) return;
@@ -74,9 +69,9 @@ export function Hero() {
       className="relative isolate flex min-h-[92vh] sm:min-h-[88vh] lg:min-h-[92vh] items-center overflow-hidden bg-[#FAF4EB] py-8 sm:py-12 lg:py-16 text-[#3A2118]"
     >
       {/* ============================================================ */}
-      {/* CLEAN TEMPLE BACKGROUND SCENES (NO STATIC PEACOCK)           */}
-      {/* Desktop (lg+): 1920x1080 Widescreen Temple Courtyard         */}
-      {/* Mobile (<lg): 1080x1920 Vertical Portrait Temple Courtyard   */}
+      {/* MASTER TEMPLE BACKGROUND SCENES                              */}
+      {/* Desktop (lg+): Exact size & position from user image         */}
+      {/* Mobile (<lg): 1080x1920 Vertical Portrait Temple Scene       */}
       {/* ============================================================ */}
       <motion.div
         aria-hidden="true"
@@ -87,7 +82,7 @@ export function Hero() {
         <div className="hidden lg:block absolute inset-0">
           <Image
             src="/images/1-real.png"
-            alt=""
+            alt="POOJARO Sacred Rituals"
             fill
             priority
             quality={95}
@@ -99,8 +94,8 @@ export function Hero() {
         {/* Mobile / Tablet Portrait Scene (< 1024px) */}
         <div className="block lg:hidden absolute inset-0">
           <Image
-            src="/images/hero-clean-mobile.png"
-            alt=""
+            src="/images/hero-mobile-scene.jpg"
+            alt="POOJARO Sacred Rituals"
             fill
             priority
             quality={95}
@@ -113,7 +108,7 @@ export function Hero() {
       {/* Soft gradient readability overlays on mobile */}
       <div
         aria-hidden="true"
-        className="block lg:hidden pointer-events-none absolute inset-x-0 top-0 h-[48%] bg-gradient-to-b from-[#FAF4EB]/85 via-[#FAF4EB]/45 to-transparent -z-10"
+        className="block lg:hidden pointer-events-none absolute inset-x-0 top-0 h-[46%] bg-gradient-to-b from-[#FAF4EB]/85 via-[#FAF4EB]/45 to-transparent -z-10"
       />
       <div
         aria-hidden="true"
@@ -160,7 +155,7 @@ export function Hero() {
 
       {/* Main Content Grid */}
       <div className="container-page relative z-10 w-full h-full">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] items-center gap-8 lg:gap-10 xl:gap-14">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] items-center gap-8 lg:gap-10 xl:gap-14">
           {/* Left Column: Editorial & Actions */}
           <div className="max-w-xl mx-auto lg:mx-0 w-full">
             {/* Eyebrow: MORE THAN A STORE — ❖ */}
@@ -194,84 +189,6 @@ export function Hero() {
               </span>
             </motion.h1>
 
-            {/* ============================================================ */}
-            {/* MOBILE FLOATING PEACOCK (PNG with Levitation Animation)     */}
-            {/* Displayed between headline and lede on mobile screens        */}
-            {/* ============================================================ */}
-            <motion.div
-              className="block lg:hidden my-6 sm:my-8 relative w-full max-w-[340px] sm:max-w-[420px] mx-auto aspect-[1024/682]"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: reduced ? 0.01 : 0.7, ease: EASE_OUT_SOFT, delay: 0.2 }}
-            >
-              {/* Floating Animation Container */}
-              <motion.div
-                className="relative w-full h-full"
-                animate={
-                  reduced
-                    ? undefined
-                    : {
-                        y: [-6, 6, -6],
-                        rotate: [-0.4, 0.4, -0.4],
-                      }
-                }
-                transition={{
-                  y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
-                  rotate: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
-                }}
-              >
-                {/* Divine pulsating golden glow aura */}
-                <motion.div
-                  aria-hidden="true"
-                  animate={
-                    reduced
-                      ? undefined
-                      : {
-                          opacity: [0.35, 0.65, 0.35],
-                          scale: [0.95, 1.05, 0.95],
-                        }
-                  }
-                  transition={{
-                    duration: 4.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  className="absolute inset-[-10%] rounded-full bg-[radial-gradient(circle,#F5DEC2_0%,transparent_70%)] blur-xl pointer-events-none -z-10"
-                />
-
-                {/* Floating Peacock Transparent PNG */}
-                <Image
-                  src="/images/peacock/peacock-transparent.png"
-                  alt="POOJARO Sacred Golden Peacock"
-                  fill
-                  priority
-                  quality={100}
-                  sizes="(max-width: 1023px) 90vw, 420px"
-                  className="object-contain object-center drop-shadow-[0_16px_36px_rgba(58,33,24,0.22)]"
-                  unoptimized
-                />
-              </motion.div>
-
-              {/* Dynamic floating contact shadow */}
-              <motion.div
-                aria-hidden="true"
-                animate={
-                  reduced
-                    ? undefined
-                    : {
-                        scale: [1.05, 0.92, 1.05],
-                        opacity: [0.4, 0.2, 0.4],
-                      }
-                }
-                transition={{
-                  duration: 4.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className="absolute -bottom-2 left-[15%] right-[15%] h-5 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,23,11,0.28)_0%,transparent_70%)] blur-sm pointer-events-none"
-              />
-            </motion.div>
-
             {/* Subtitle / Lede */}
             <motion.p
               className="mt-3.5 sm:mt-5 text-[#5C3D2E] text-base sm:text-lg leading-relaxed max-w-lg font-normal"
@@ -304,9 +221,12 @@ export function Hero() {
               </Link>
             </motion.div>
 
+            {/* Mobile Breathing Room to showcase the temple peacock scene */}
+            <div className="h-[28vh] min-h-[160px] sm:h-[22vh] lg:hidden pointer-events-none" />
+
             {/* Trust Badges Row */}
             <motion.div
-              className="mt-8 sm:mt-12 pt-4 flex items-center justify-between sm:justify-start gap-4 sm:gap-8 max-w-lg border-t border-[#8C6D53]/20 bg-[#FAF4EB]/70 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none p-3 sm:p-0 rounded-xl"
+              className="mt-6 sm:mt-10 pt-4 flex items-center justify-between sm:justify-start gap-4 sm:gap-8 max-w-lg border-t border-[#8C6D53]/20 bg-[#FAF4EB]/70 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none p-3 sm:p-0 rounded-xl"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : 0.6 }}
@@ -356,101 +276,23 @@ export function Hero() {
             </motion.div>
           </div>
 
-          {/* ============================================================ */}
-          {/* DESKTOP FLOATING PEACOCK (Right Column with Dual Parallax)   */}
-          {/* ============================================================ */}
-          <div className="hidden lg:flex flex-col items-end justify-center relative w-full h-full min-h-[500px]">
+          {/* Right Column: Desktop Tagline */}
+          <div className="hidden lg:flex flex-col items-end justify-between h-full min-h-[460px] pointer-events-none select-none">
             {/* Top Right Tagline: A LITTLE MORE DIVINITY IN EVERY HOME — ❖ */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-right pb-4 select-none pointer-events-none"
+              className="text-right pt-2"
             >
               <p className="font-serif text-[11px] uppercase tracking-[0.28em] text-[#8A6A52] font-semibold leading-relaxed">
                 A LITTLE MORE<br />DIVINITY<br />IN EVERY HOME
               </p>
-              <div className="mt-2 flex items-center justify-end gap-2 text-[#8A6A52]/40">
-                <span className="h-[1px] w-8 bg-[#8A6A52]/40" />
+              <div className="mt-2.5 flex items-center justify-end gap-2.5 text-[#8A6A52]/45">
+                <span className="h-[1px] w-10 bg-[#8A6A52]/40" />
                 <span className="text-[10px] text-[#B78332]">❖</span>
-                <span className="h-[1px] w-8 bg-[#8A6A52]/40" />
+                <span className="h-[1px] w-10 bg-[#8A6A52]/40" />
               </div>
-            </motion.div>
-
-            {/* Desktop Floating Peacock Stage */}
-            <motion.div
-              className="relative w-full max-w-[700px] xl:max-w-[720px] aspect-[1024/682]"
-              style={parallax ? { x: peacockX, y: peacockY } : undefined}
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.01 : 0.8, ease: EASE_OUT_SOFT, delay: 0.15 }}
-            >
-              {/* Continuous Gentle Hovering / Floating Motion Container */}
-              <motion.div
-                className="relative w-full h-full"
-                animate={
-                  reduced
-                    ? undefined
-                    : {
-                        y: [-8, 8, -8],
-                        rotate: [-0.6, 0.6, -0.6],
-                      }
-                }
-                transition={{
-                  y: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-                  rotate: { duration: 6.5, repeat: Infinity, ease: 'easeInOut' },
-                }}
-              >
-                {/* Divine warm glow behind the floating peacock */}
-                <motion.div
-                  aria-hidden="true"
-                  animate={
-                    reduced
-                      ? undefined
-                      : {
-                          opacity: [0.35, 0.65, 0.35],
-                          scale: [0.95, 1.05, 0.95],
-                        }
-                  }
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  className="absolute inset-[-12%] rounded-full bg-[radial-gradient(circle,#F5DEC2_0%,transparent_100%)] blur-2xl pointer-events-none -z-10"
-                />
-
-                {/* Floating Peacock Transparent PNG */}
-                <Image
-                  src="/images/peacock/peacock-transparent.png"
-                  alt="POOJARO Sacred Golden Peacock"
-                  fill
-                  priority
-                  quality={95}
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-contain object-center drop-shadow-[0_24px_45px_rgba(58,33,24,0.22)] transition-transform duration-700 ease-out-soft hover:scale-[1.03]"
-                  unoptimized
-                />
-              </motion.div>
-
-              {/* Dynamic floating ground shadow that expands/contracts as peacock floats */}
-              <motion.div
-                aria-hidden="true"
-                animate={
-                  reduced
-                    ? undefined
-                    : {
-                        scale: [1.06, 0.92, 1.06],
-                        opacity: [0.42, 0.22, 0.42],
-                      }
-                }
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className="absolute bottom-[-3%] left-[12%] right-[12%] h-7 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,23,11,0.32)_0%,transparent_70%)] blur-md pointer-events-none"
-              />
             </motion.div>
           </div>
         </div>
