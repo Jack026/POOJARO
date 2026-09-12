@@ -11,66 +11,17 @@ import {
 } from 'lucide-react';
 
 import type { Festival } from '@/lib/data/types';
+import {
+  type PanchangDay,
+  type GrahanInfo,
+  getMonthPanchang,
+  getPanchangForDate,
+  SACRED_FESTIVALS_MAP,
+} from '@/lib/panchang';
 
 interface FestivalRailProps {
   festivals: Festival[];
   now?: Date;
-}
-
-interface PanchangDay {
-  date: string;
-
-  // Panchang
-  tithi: string;
-  tithiEnds?: string;
-  paksha?: 'Shukla Paksha' | 'Krishna Paksha' | string;
-
-  nakshatra?: string;
-  nakshatraEnds?: string;
-
-  yoga?: string;
-  yogaEnds?: string;
-
-  karana?: string;
-  karanaEnds?: string;
-
-  // Sun / Moon
-  sunrise?: string;
-  sunset?: string;
-  moonrise?: string;
-  moonset?: string;
-  moonPhase?: string;
-
-  // Muhurat / Kaal
-  brahmaMuhurat?: string;
-  abhijitMuhurat?: string;
-  vijayMuhurat?: string;
-  godhuliMuhurat?: string;
-
-  rahuKaal?: string;
-  gulikaKaal?: string;
-  yamaganda?: string;
-  durMuhurat?: string;
-  varjyam?: string;
-
-  // Events
-  festivals?: string[];
-  vrat?: string[];
-  sankranti?: string;
-  special?: string[];
-
-  // Grahan
-  suryaGrahan?: GrahanInfo;
-  chandraGrahan?: GrahanInfo;
-}
-
-interface GrahanInfo {
-  name: string;
-  start: string;
-  maximum?: string;
-  end: string;
-  visibleInIndia?: boolean;
-  sutak?: string;
 }
 
 interface CalendarMonth {
@@ -107,23 +58,7 @@ const WEEKDAYS = [
   'Sat',
 ];
 
-const DEFAULT_TITHIS = [
-  'Pratipada',
-  'Dvitiya',
-  'Tritiya',
-  'Chaturthi',
-  'Panchami',
-  'Shashthi',
-  'Saptami',
-  'Ashtami',
-  'Navami',
-  'Dashami',
-  'Ekadashi',
-  'Dwadashi',
-  'Trayodashi',
-  'Chaturdashi',
-  'Purnima',
-];
+
 
 /* -------------------------------------------------------------------------- */
 /*                              HELPERS                                       */
@@ -187,96 +122,39 @@ function getFestivalDate(festival: Festival) {
   return parseDate(festival.startDate);
 }
 
-function getFestivalDays(
-  festivals: Festival[],
-  year: number
-): PanchangDay[] {
-  const validFestivals = festivals.filter((festival) => {
-    const date = getFestivalDate(festival);
-
-    return Boolean(
-      date &&
-        date.getFullYear() === year &&
-        festival.isActive
-    );
-  });
-
-  /*
-   * The festival records already available in your project provide the
-   * festival names/date information. The remaining Panchang fields are
-   * intentionally optional so this component can render immediately and
-   * later consume a proper Panchang data source.
-   */
-  return validFestivals.map((festival, index) => {
-    const date = getFestivalDate(festival)!;
-    const dateKey = toDateKey(date);
-
-    return {
-      date: dateKey,
-
-      tithi:
-        DEFAULT_TITHIS[
-          index % DEFAULT_TITHIS.length
-        ] ?? 'Pratipada',
-
-      paksha:
-        index % 2 === 0
-          ? 'Shukla Paksha'
-          : 'Krishna Paksha',
-
-      festivals: [festival.name],
-
-      special: festival.tagline
-        ? [festival.tagline]
-        : undefined,
-    };
-  });
-}
-
-function mergeFestivalDays(
-  festivals: Festival[],
-  days: PanchangDay[]
-) {
-  const map = new Map<string, PanchangDay>();
-
-  for (const day of days) {
-    map.set(day.date, day);
-  }
-
-  for (const festival of festivals) {
-    const date = getFestivalDate(festival);
-
-    if (!date) continue;
-
-    const key = toDateKey(date);
-
-    const existing = map.get(key);
-
-    if (existing) {
-      existing.festivals = [
-        ...(existing.festivals ?? []),
-        festival.name,
-      ];
-
-      map.set(key, existing);
-    } else {
-      map.set(key, {
-        date: key,
-        tithi: DEFAULT_TITHIS[0] ?? 'Pratipada',
-        paksha: 'Shukla Paksha',
-        festivals: [festival.name],
-      });
-    }
-  }
-
-  return Array.from(map.values());
-}
-
 function findNextFestival(
   festivals: Festival[],
   now: Date
 ): Festival | null {
-  const upcoming = festivals
+  const allCandidates: Festival[] = [...festivals];
+
+  // Merge sacred festivals from SACRED_FESTIVALS_MAP
+  for (const [dateStr, info] of Object.entries(SACRED_FESTIVALS_MAP)) {
+    const fDate = new Date(`${dateStr}T00:00:00.000Z`);
+    if (fDate.getTime() >= now.getTime() - 86400000) {
+      for (const name of info.festivals) {
+        if (!allCandidates.some((c) => c.name === name || c.startDate?.slice(0, 10) === dateStr)) {
+          allCandidates.push({
+            id: `panchang-${dateStr}-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            name,
+            slug: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            headline: name,
+            tagline: 'Sacred Hindu celebration.',
+            description: 'Auspicious festival celebrated according to traditional Hindu panchang.',
+            imageUrl: '',
+            icon: 'Sparkles',
+            startDate: `${dateStr}T00:00:00.000Z`,
+            endDate: `${dateStr}T23:59:59.000Z`,
+            accent: '#B78332',
+            isActive: true,
+            sortOrder: 100,
+          });
+        }
+      }
+    }
+  }
+
+  const upcoming = allCandidates
     .filter((festival) => {
       if (!festival.isActive || !festival.startDate) {
         return false;
@@ -284,12 +162,11 @@ function findNextFestival(
 
       const date = parseDate(festival.startDate);
 
-      return date !== null && date.getTime() >= now.getTime();
+      return date !== null && date.getTime() >= now.getTime() - 86400000;
     })
     .sort((a, b) => {
       const first = parseDate(a.startDate!)?.getTime() ?? Infinity;
-      const second =
-        parseDate(b.startDate!)?.getTime() ?? Infinity;
+      const second = parseDate(b.startDate!)?.getTime() ?? Infinity;
 
       return first - second;
     });
@@ -324,23 +201,29 @@ export function FestivalRail({
     [festivals, now]
   );
 
-  const baseDays = useMemo(
-    () => getFestivalDays(festivals, calendar.year),
-    [festivals, calendar.year]
-  );
-
   const days = useMemo(
-    () => mergeFestivalDays(festivals, baseDays),
-    [festivals, baseDays]
+    () => getMonthPanchang(calendar.year, calendar.month, festivals),
+    [calendar.year, calendar.month, festivals]
   );
 
   const daysByDate = useMemo(() => {
-    return new Map(
-      days.map((day) => [day.date, day])
-    );
+    const map = new Map<string, PanchangDay>();
+    for (const day of days) {
+      map.set(day.date, day);
+    }
+    return map;
   }, [days]);
 
-  const selectedDay = daysByDate.get(selectedDate);
+  const selectedDay = useMemo(() => {
+    if (daysByDate.has(selectedDate)) {
+      return daysByDate.get(selectedDate);
+    }
+    const parsed = parseDate(selectedDate);
+    if (parsed) {
+      return getPanchangForDate(parsed, festivals);
+    }
+    return days[0];
+  }, [daysByDate, selectedDate, festivals, days]);
 
   const cells = useMemo(
     () =>
