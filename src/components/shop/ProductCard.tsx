@@ -48,7 +48,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
       productId: product.id,
       quantity: 1,
       name: product.name,
-      openDrawer: false,
+      openDrawer: true,
       showToast: true,
     });
     setIsAdding(false);

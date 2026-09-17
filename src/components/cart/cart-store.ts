@@ -91,8 +91,18 @@ export const useCartStore = create<CartStoreState>()(
             });
           }
         } catch (error) {
-          console.error('[CartStore] Failed to sync cart:', error);
-          set({ isSyncing: false });
+          console.warn('[CartStore] /api/cart/sync failed, falling back to server action:', error);
+          try {
+            const result = await syncCartAction({ items, couponCode });
+            set({
+              pricedCart: result.pricedCart,
+              couponEvaluation: result.couponEvaluation,
+              isSyncing: false,
+            });
+          } catch (actionErr) {
+            console.error('[CartStore] Server action sync also failed:', actionErr);
+            set({ isSyncing: false });
+          }
         }
       },
 

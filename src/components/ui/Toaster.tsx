@@ -42,7 +42,7 @@ export function Toaster() {
   return (
     <div
       className={cn(
-        'pointer-events-none fixed z-200 flex flex-col gap-2',
+        'pointer-events-none fixed z-[200] flex flex-col gap-2',
         'inset-x-3 top-3 items-center',
         'sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:items-end',
       )}

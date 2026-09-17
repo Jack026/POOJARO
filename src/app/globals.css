@@ -106,10 +106,19 @@
   --duration-slow: 520ms;
   --duration-reveal: 720ms;
 
-  /* --- Layout ----------------------------------------------------------- */
+  /* --- Layout & Layers -------------------------------------------------- */
   --spacing-header: 4.5rem;
   --spacing-header-compact: 3.5rem;
   --container-editorial: 46rem; /* Measure for long-form copy */
+
+  --z-base: 0;
+  --z-dropdown: 50;
+  --z-sticky: 60;
+  --z-header: 70;
+  --z-search: 80;
+  --z-overlay: 90;
+  --z-modal: 100;
+  --z-toast: 200;
 }
 
 /* ==========================================================================

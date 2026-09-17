@@ -48,8 +48,9 @@ export function QuickViewModal() {
   const primaryPhotoKey = image?.url ? normalizePhotoKey(image.url) : '';
   const hasPhoto = isKnownPhoto(primaryPhotoKey);
 
-  const handleAddToCart = async (openDrawer = false) => {
+  const handleAddToCart = async (openDrawer = true) => {
     setIsAdding(true);
+    closeQuickView();
     await addItem({
       productId: product.id,
       variantId: selectedVariant?.id ?? undefined,

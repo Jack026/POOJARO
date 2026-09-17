@@ -77,7 +77,7 @@ export function Overlay({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className={cn('fixed inset-0 z-100 flex', containerClassName)}>
+        <div className={cn('fixed inset-0 z-[90] flex', containerClassName)}>
           <motion.div
             className="absolute inset-0 bg-charcoal/45 backdrop-blur-[2px]"
             variants={overlayFade}

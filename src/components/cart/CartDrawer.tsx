@@ -51,7 +51,8 @@ export function CartDrawer() {
       description={`${totalCount} ${totalCount === 1 ? 'item' : 'items'} in your cart`}
       className="max-w-md w-full"
       footer={
-        hasHydrated && items.length > 0 && totals ? (
+        hasHydrated && items.length > 0 ? (
+          totals ? (
           <div className="space-y-4 pt-2">
             {/* Coupon Accordion / Badge */}
             {couponCode ? (
@@ -182,6 +183,17 @@ export function CartDrawer() {
               </div>
             </div>
           </div>
+        ) : (
+            <div className="space-y-3 pt-2 animate-pulse">
+              <div className="flex justify-between py-2 border-t border-sand-deep/60">
+                <span className="text-xs text-brown-muted">Updating totals…</span>
+                <div className="h-4 bg-sand-deep/40 rounded w-16" />
+              </div>
+              <div className="h-11 bg-sand-deep/40 rounded-lg w-full flex items-center justify-center text-xs text-brown-muted font-medium">
+                Updating Ritual Box…
+              </div>
+            </div>
+          )
         ) : null
       }
     >
@@ -234,7 +246,8 @@ export function CartDrawer() {
 
           {/* Cart item lines */}
           <div className="divide-y divide-sand-deep/60">
-            {pricedCart?.lines.map((line) => {
+            {pricedCart && pricedCart.lines.length > 0 ? (
+              pricedCart.lines.map((line) => {
               const photoKey = line.image?.url ? normalizePhotoKey(line.image.url) : '';
               const hasPhoto = isKnownPhoto(photoKey);
 
@@ -318,7 +331,21 @@ export function CartDrawer() {
                   </div>
                 </div>
               );
-            })}
+            })
+          ) : (
+            <div className="space-y-3 py-2">
+              {items.map((item, idx) => (
+                <div key={idx} className="py-3 flex gap-3.5 animate-pulse">
+                  <div className="w-16 h-16 rounded-md bg-sand-deep/30 shrink-0" />
+                  <div className="flex-1 space-y-2 py-1">
+                    <div className="h-3.5 bg-sand-deep/40 rounded w-3/4" />
+                    <div className="h-3 bg-sand-deep/30 rounded w-1/3" />
+                    <div className="h-3 bg-sand-deep/25 rounded w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           </div>
         </div>
       )}

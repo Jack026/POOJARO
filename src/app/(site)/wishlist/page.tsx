@@ -67,7 +67,7 @@ export default function WishlistPage() {
             <WishlistItems
               productIds={productIds}
               onRemove={(id, name) => toggleWishlist(id, name)}
-              onAddToCart={(productId, name) => addItem({ productId, name, showToast: true })}
+              onAddToCart={(productId, name) => addItem({ productId, name, showToast: true, openDrawer: true })}
             />
           </div>
         )}
