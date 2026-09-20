@@ -10,10 +10,13 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed:reset": "node scripts/reset-store.mjs",
+    "seed:supabase": "tsx scripts/seed-supabase.ts",
     "icons": "node scripts/make-icons.mjs",
     "verify": "tsx scripts/verify-store.mts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
     "motion": "^11.15.0",

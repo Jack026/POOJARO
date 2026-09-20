@@ -1,25 +1,34 @@
 'use client';
 
 /**
- * Customer sign-in.
+ * Customer sign-in powered by Supabase Auth.
  *
- * The API (`POST /api/auth/login`) is passwordless: it signs you in if an
- * account with that email exists. So the form asks for the email and nothing
- * else — a password field the backend ignores would only imply a security
- * check that isn't there. Validation failures surface on the field itself
- * (Field already gives it `role="alert"` and `aria-invalid`).
+ * Supports email and secure password authentication.
+ * If the user logs in, Supabase SSR cookies and app sessions are established.
  */
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Field';
+import { GoogleButton } from './GoogleButton';
 
-export function LoginForm({ returnTo, registerHref }: { returnTo: string; registerHref: string }) {
+export function LoginForm({
+  returnTo,
+  registerHref,
+  initialError,
+}: {
+  returnTo: string;
+  registerHref: string;
+  initialError?: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(initialError || '');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,8 +36,8 @@ export function LoginForm({ returnTo, registerHref }: { returnTo: string; regist
     if (loading) return;
     setError('');
 
-    const trimmed = email.trim();
-    if (!trimmed) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
       setError('Please enter your email address.');
       return;
     }
@@ -38,18 +47,19 @@ export function LoginForm({ returnTo, registerHref }: { returnTo: string; regist
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({ email: trimmedEmail, password }),
       });
+
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(
           res.status === 401
-            ? 'We couldn’t find an account with that email.'
+            ? data.error || 'We couldn’t find an account matching those credentials.'
             : data.error || 'Something went wrong. Please try again.',
         );
       }
-      // Land on the intended page and re-run its server render so the account
-      // area picks up the freshly set session cookie.
+
+      // Land on the intended page and refresh so server components pick up the new session
       router.push(returnTo);
       router.refresh();
     } catch (err) {
@@ -60,7 +70,37 @@ export function LoginForm({ returnTo, registerHref }: { returnTo: string; regist
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      <Field label="Email address" required error={error} hint="The email you used to create your account.">
+      <div className="flex items-center gap-2 rounded-lg bg-gold-pale/30 px-3 py-2 text-xs text-gold-deep border border-gold-pale">
+        <ShieldCheck className="w-4 h-4 shrink-0" />
+        <span>Secured with Supabase Zero-Trust Authentication</span>
+      </div>
+
+      {error && (
+        <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Google One-Click Sign In */}
+      <div className="pt-1">
+        <GoogleButton
+          returnTo={returnTo}
+          label="Sign in with Google"
+          onError={(err) => setError(err)}
+          disabled={loading}
+        />
+      </div>
+
+      {/* Elegant Divider */}
+      <div className="relative flex items-center justify-center my-1">
+        <span className="h-[1px] w-full bg-sand-deep/30" />
+        <span className="bg-white px-3 text-[11px] uppercase tracking-wider text-brown-muted font-medium shrink-0">
+          or continue with email
+        </span>
+        <span className="h-[1px] w-full bg-sand-deep/30" />
+      </div>
+
+      <Field label="Email address" required hint="The email you used to create your account.">
         {(props) => (
           <Input
             {...props}
@@ -74,8 +114,35 @@ export function LoginForm({ returnTo, registerHref }: { returnTo: string; regist
               setEmail(e.target.value);
               if (error) setError('');
             }}
-            invalid={Boolean(error)}
           />
+        )}
+      </Field>
+
+      <Field label="Password" hint="Enter your account password.">
+        {(props) => (
+          <div className="relative">
+            <Input
+              {...props}
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError('');
+              }}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-muted hover:text-brown transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         )}
       </Field>
 

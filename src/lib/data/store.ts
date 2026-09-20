@@ -166,7 +166,7 @@ export interface AnalyticsRange {
 // ---------------------------------------------------------------------------
 
 export interface DataStore {
-  readonly backend: 'local' | 'firestore';
+  readonly backend: 'local' | 'firestore' | 'supabase';
 
   // -- Settings ------------------------------------------------------------
   getSettings(): Promise<Settings>;

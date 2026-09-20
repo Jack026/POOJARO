@@ -28,6 +28,10 @@ function globals(): StoreGlobal {
 
 async function create(): Promise<DataStore> {
   const { backend } = serverEnv();
+  if (backend === 'supabase') {
+    const { SupabaseDataStore } = await import('./supabase/store');
+    return new SupabaseDataStore();
+  }
   if (backend === 'firestore') {
     // Dynamic so the local backend never pulls firebase-admin into the graph.
     const { FirestoreDataStore } = await import('./firestore/store');

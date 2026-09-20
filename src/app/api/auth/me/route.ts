@@ -10,9 +10,12 @@ export async function GET(req: NextRequest) {
     }
 
     const store = await getStore();
-    const user = await store.getUserById(session.userId);
+    let user = await store.getUserById(session.userId);
+    if (!user && session.email) {
+      user = await store.getUserByEmail(session.email);
+    }
     
-    return NextResponse.json({ user });
+    return NextResponse.json({ user, session });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

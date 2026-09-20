@@ -22,9 +22,9 @@ function safeReturnTo(raw: string | undefined): string {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ returnTo?: string }>;
+  searchParams: Promise<{ returnTo?: string; error?: string }>;
 }) {
-  const { returnTo: raw } = await searchParams;
+  const { returnTo: raw, error } = await searchParams;
   const returnTo = safeReturnTo(raw);
 
   // Already signed in? Skip the form and go where they were headed.
@@ -45,7 +45,7 @@ export default async function LoginPage({
       heading="Sign in"
       subheading="Enter your email to reach your account."
     >
-      <LoginForm returnTo={returnTo} registerHref={registerHref} />
+      <LoginForm returnTo={returnTo} registerHref={registerHref} initialError={error} />
     </AuthShell>
   );
 }

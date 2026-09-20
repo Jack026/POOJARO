@@ -32,6 +32,10 @@ export const publicEnv = {
    * signs orders never leaves the server.
    */
   razorpayKeyId: optional(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
+  supabaseUrl: optional(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  supabaseAnonKey:
+    optional(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ??
+    optional(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
 } as const;
 
 export const isRazorpayCheckoutEnabled = true;
@@ -40,7 +44,7 @@ export const isRazorpayCheckoutEnabled = true;
 // Server — secrets
 // ---------------------------------------------------------------------------
 
-export type DataBackend = 'local' | 'firestore';
+export type DataBackend = 'local' | 'firestore' | 'supabase';
 
 export interface ServerEnv {
   backend: DataBackend;
@@ -50,6 +54,11 @@ export interface ServerEnv {
     projectId: string | null;
     clientEmail: string | null;
     privateKey: string | null;
+  };
+  supabase: {
+    url: string | null;
+    anonKey: string | null;
+    serviceRoleKey: string | null;
   };
   razorpay: {
     keyId: string | null;
@@ -91,10 +100,26 @@ export function serverEnv(): ServerEnv {
   // Private keys are usually pasted with literal \n sequences in a .env file.
   const privateKey = optional(process.env.FIREBASE_PRIVATE_KEY)?.replace(/\\n/g, '\n') ?? null;
 
+  const supabaseUrl = optional(process.env.NEXT_PUBLIC_SUPABASE_URL) ?? optional(process.env.SUPABASE_URL);
+  const supabaseAnonKey =
+    optional(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ??
+    optional(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) ??
+    optional(process.env.SUPABASE_ANON_KEY);
+  const supabaseServiceRoleKey = optional(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
   const requested = optional(process.env.DATA_BACKEND)?.toLowerCase();
   const firebaseComplete = Boolean(projectId && clientEmail && privateKey);
+  const supabaseComplete = Boolean(supabaseUrl && (supabaseServiceRoleKey || supabaseAnonKey));
+
   let backend: DataBackend = 'local';
-  if (requested === 'firestore') {
+  if (requested === 'supabase') {
+    if (!supabaseComplete) {
+      throw new Error(
+        'DATA_BACKEND=supabase requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY).',
+      );
+    }
+    backend = 'supabase';
+  } else if (requested === 'firestore') {
     if (!firebaseComplete) {
       throw new Error(
         'DATA_BACKEND=firestore requires FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY. See site/README.md.',
@@ -102,7 +127,7 @@ export function serverEnv(): ServerEnv {
     }
     backend = 'firestore';
   } else if (requested && requested !== 'local') {
-    throw new Error(`DATA_BACKEND must be "local" or "firestore", received "${requested}".`);
+    throw new Error(`DATA_BACKEND must be "local", "firestore" or "supabase", received "${requested}".`);
   }
 
   const sessionSecret = optional(process.env.SESSION_SECRET);
@@ -124,6 +149,11 @@ export function serverEnv(): ServerEnv {
     backend,
     localDataDir: optional(process.env.LOCAL_DATA_DIR) ?? '.data',
     firebase: { projectId, clientEmail, privateKey },
+    supabase: {
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      serviceRoleKey: supabaseServiceRoleKey,
+    },
     razorpay: {
       keyId: optional(process.env.RAZORPAY_KEY_ID) ?? optional(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
       keySecret: optional(process.env.RAZORPAY_KEY_SECRET),
@@ -164,4 +194,9 @@ export function resetServerEnvCache(): void {
 
 export function isFirestoreConfigured(): boolean {
   return serverEnv().backend === 'firestore';
+}
+
+export function isSupabaseConfigured(): boolean {
+  const env = serverEnv();
+  return Boolean(env.supabase.url && (env.supabase.serviceRoleKey || env.supabase.anonKey));
 }

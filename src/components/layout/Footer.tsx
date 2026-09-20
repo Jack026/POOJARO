@@ -1,4 +1,4 @@
-﻿import { Facebook, Instagram, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -130,9 +130,9 @@ export function Footer({ settings }: { settings: Settings }) {
             links={[
               { href: '/about', label: 'About Us' },
               { href: '/about#story', label: 'Our Story' },
-              { href: '/about', label: 'Blogs' },
-              { href: '/about', label: 'Careers' },
-              { href: '/about', label: 'Press' },
+              { href: '/about#blogs', label: 'Blogs' },
+              { href: '/about#careers', label: 'Careers' },
+              { href: '/about#press', label: 'Press' },
               { href: '/privacy', label: 'Terms & Privacy' },
             ]}
           />
@@ -141,10 +141,10 @@ export function Footer({ settings }: { settings: Settings }) {
           <FooterColumn
             title="Occasions"
             links={[
-              { href: '/occasions', label: 'Daily Puja' },
+              { href: '/occasions/daily-puja', label: 'Daily Puja' },
               { href: '/festivals', label: 'Festivals' },
               { href: '/occasions/griha-pravesh', label: 'Griha Pravesh' },
-              { href: '/occasions', label: 'Wedding' },
+              { href: '/occasions/wedding', label: 'Wedding' },
               { href: '/contact?type=corporate', label: 'Corporate Gifting' },
               { href: '/ritual-finder', label: 'Custom Kits' },
             ]}
@@ -251,7 +251,7 @@ function FooterColumn({ title, links }: { title: string; links: Array<{ href: st
       <h3 className="font-display text-base tracking-wider text-[#E8C988]">{title}</h3>
       <ul className="space-y-2.5">
         {links.map((link) => (
-          <li key={link.href}>
+          <li key={`${link.href}-${link.label}`}>
             <Link
               href={link.href}
               className="text-xs sm:text-sm text-sand-deep/80 transition-colors hover:text-white hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold-soft"

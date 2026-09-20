@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, Share2, Truck } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -21,6 +21,11 @@ export function ProductInfo({ product }: { product: Product }) {
   const [selectedVariant, setSelectedVariant] = useState(defaultV);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { addItem, openCart } = useCartStore();
   const { isInWishlist, toggleWishlist } = useWishlistStore();
@@ -29,7 +34,7 @@ export function ProductInfo({ product }: { product: Product }) {
   const stock = stockState(product, selectedVariant);
   const stockMsg = stockLabel(product, selectedVariant);
   const purchasable = isPurchasable(product, selectedVariant);
-  const wishlisted = isInWishlist(product.id);
+  const wishlisted = mounted ? isInWishlist(product.id) : false;
 
   async function handleAddToCart() {
     if (!purchasable) return;

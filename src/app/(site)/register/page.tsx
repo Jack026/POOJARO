@@ -21,9 +21,9 @@ function safeReturnTo(raw: string | undefined): string {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ returnTo?: string }>;
+  searchParams: Promise<{ returnTo?: string; error?: string }>;
 }) {
-  const { returnTo: raw } = await searchParams;
+  const { returnTo: raw, error } = await searchParams;
   const returnTo = safeReturnTo(raw);
 
   if (await getCustomerSession()) redirect(returnTo);
@@ -43,7 +43,7 @@ export default async function RegisterPage({
       heading="Create your account"
       subheading="It takes less than a minute."
     >
-      <RegisterForm returnTo={returnTo} loginHref={loginHref} />
+      <RegisterForm returnTo={returnTo} loginHref={loginHref} initialError={error} />
     </AuthShell>
   );
 }

@@ -78,7 +78,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
               </p>
               <ul className="space-y-1">
                 {group.links.map((link) => (
-                  <li key={link.href}>
+                  <li key={`${link.href}-${link.label}`}>
                     <Link
                       href={link.href}
                       onClick={onClose}

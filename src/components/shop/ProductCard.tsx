@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, Heart, ShoppingBag, Check } from 'lucide-react';
@@ -27,12 +27,17 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlistStore();
   const openQuickView = useQuickViewStore((s) => s.openQuickView);
 
+  const [mounted, setMounted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const pricing = productPricing(product);
   const stock = stockState(product);
-  const isWishlisted = isInWishlist(product.id);
+  const isWishlisted = mounted ? isInWishlist(product.id) : false;
 
   const image = product.images[0];
   const primaryPhotoKey = image?.url ? normalizePhotoKey(image.url) : '';

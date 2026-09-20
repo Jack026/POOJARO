@@ -17,6 +17,8 @@ import { ADMIN_COOKIE, CUSTOMER_COOKIE, unseal, type AdminSession, type Customer
 import { ForbiddenError, requireCapability } from './capabilities';
 import type { Actor } from '../data/store';
 import type { AdminCapability, AdminUser } from '../data/types';
+import { isSupabaseConfigured } from '../env';
+import { getSupabaseServerClient } from '../supabase/server';
 
 export class UnauthenticatedError extends Error {
   constructor(message = 'Please sign in to continue.') {
@@ -34,7 +36,27 @@ export async function getAdminSession(): Promise<AdminSession | null> {
 export async function getCustomerSession(): Promise<CustomerSession | null> {
   const jar = await cookies();
   const session = unseal(jar.get(CUSTOMER_COOKIE)?.value);
-  return session?.kind === 'customer' ? session : null;
+  if (session?.kind === 'customer') return session;
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await getSupabaseServerClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        return {
+          kind: 'customer',
+          userId: user.id,
+          email: user.email ?? '',
+          name: (user.user_metadata?.name as string) || (user.email ? user.email.split('@')[0] : 'Devotee') || 'Devotee',
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+        };
+      }
+    } catch {
+      // Fallback to null
+    }
+  }
+
+  return null;
 }
 
 /**

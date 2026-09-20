@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -24,6 +24,11 @@ export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Scroll effect
   useEffect(() => {
@@ -240,7 +245,7 @@ export function Header() {
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
-              {wishlistHydrated && wishlistCount > 0 && (
+              {mounted && wishlistHydrated && wishlistCount > 0 && (
                 <span className="absolute top-0.5 right-0.5 bg-danger text-ivory text-[10px] tabular font-bold rounded-full w-4 h-4 flex items-center justify-center border border-[#FAF6F0]">
                   {wishlistCount}
                 </span>
@@ -254,7 +259,7 @@ export function Header() {
               aria-label="Open cart"
             >
               <ShoppingBag className="w-5 h-5" />
-              {cartHydrated && cartItemCount > 0 && (
+              {mounted && cartHydrated && cartItemCount > 0 && (
                 <span className="absolute top-0.5 right-0.5 bg-gold-deep text-white text-[10px] tabular font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-subtle group-hover:bg-gold transition-colors border border-[#FAF6F0]">
                   {cartItemCount}
                 </span>
