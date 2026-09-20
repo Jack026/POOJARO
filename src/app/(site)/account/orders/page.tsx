@@ -24,7 +24,7 @@ export default async function OrdersPage() {
             <Package className="w-8 h-8" />
           </div>
           <h3 className="font-display text-xl text-brown font-medium mb-2">No orders yet</h3>
-          <p className="text-brown-muted mb-6">You haven't placed any orders yet. Once you do, they will appear here.</p>
+          <p className="text-brown-muted mb-6">You haven&apos;t placed any orders yet. Once you do, they will appear here.</p>
           <Link href="/shop" className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gold text-white font-medium hover:bg-gold-deep transition-colors">
             Start Shopping
           </Link>

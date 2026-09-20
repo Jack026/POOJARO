@@ -506,7 +506,7 @@ export default function RitualFinderPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-[#3A2118] uppercase tracking-wider mb-1">
-                    Reason ("Why this kit")
+                    Reason (&ldquo;Why this kit&rdquo;)
                   </label>
                   <textarea
                     rows={3}

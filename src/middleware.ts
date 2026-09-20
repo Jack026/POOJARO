@@ -38,9 +38,23 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
 
+  // 0. Defense Against Exploit Probes & Directory Traversals
+  const normalizedPath = pathname.toLowerCase();
+  if (
+    normalizedPath.includes('..') ||
+    normalizedPath.includes('.env') ||
+    normalizedPath.includes('wp-admin') ||
+    normalizedPath.includes('wp-login') ||
+    normalizedPath.includes('xmlrpc') ||
+    normalizedPath.includes('phpinfo') ||
+    normalizedPath.includes('/etc/passwd')
+  ) {
+    return new NextResponse('Access Denied', { status: 403 });
+  }
+
   // 1. Brute-Force & Credential Stuffing Protection on Auth Routes
   if (pathname.startsWith('/api/admin/auth/login')) {
-    // 5 attempts per 60 seconds for admin
+    // Strict 5 attempts per 60 seconds for admin
     if (!checkRateLimit(`admin-login:${ip}`, 5, 60 * 1000)) {
       return NextResponse.json(
         { error: 'Too many admin login attempts. Please wait 1 minute before trying again.' },
@@ -52,6 +66,14 @@ export async function middleware(request: NextRequest) {
     if (!checkRateLimit(`customer-auth:${ip}`, 10, 60 * 1000)) {
       return NextResponse.json(
         { error: 'Too many authentication attempts. Please wait 1 minute before trying again.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      );
+    }
+  } else if (pathname.startsWith('/api/admin/') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
+    // Protect admin mutation endpoints from automated flood attacks: 60 per minute
+    if (!checkRateLimit(`admin-mutation:${ip}`, 60, 60 * 1000)) {
+      return NextResponse.json(
+        { error: 'Admin rate limit exceeded. Please slow down.' },
         { status: 429, headers: { 'Retry-After': '60' } }
       );
     }

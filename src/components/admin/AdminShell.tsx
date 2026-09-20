@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -17,6 +17,7 @@ import {
   Star,
   Compass,
   BarChart3,
+  Database,
   Settings,
   Shield,
   ScrollText,
@@ -24,6 +25,8 @@ import {
   X,
   LogOut,
   ExternalLink,
+  Bell,
+  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PeacockMini } from '@/components/peacock/PeacockMini';
@@ -42,6 +45,7 @@ const NAVIGATION = [
   { name: 'Reviews', href: '/admin/reviews', icon: Star },
   { name: 'Ritual Finder', href: '/admin/ritual-finder', icon: Compass },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'Storage & Buckets', href: '/admin/storage', icon: Database },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
   { name: 'Admin Users', href: '/admin/admins', icon: Shield },
   { name: 'Audit Logs', href: '/admin/audit-logs', icon: ScrollText },
@@ -52,6 +56,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<{ name: string; email: string; role: string } | null>(null);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = () => {
+    fetch('/api/admin/notifications?limit=25')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        }
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -68,13 +88,29 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           setAdminUser(data);
         }
       })
-      .catch(() => {
-        // network issue
-      });
+      .catch(() => {});
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+
     return () => {
       mounted = false;
+      clearInterval(interval);
     };
   }, [router]);
+
+  // Close notifications dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    }
+    if (notifOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [notifOpen]);
 
   const handleLogout = async () => {
     try {
@@ -84,6 +120,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       console.error('Failed to log out', e);
     }
   };
+
+  const markAllRead = async () => {
+    try {
+      await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (e) {
+      console.error('Failed to mark notifications read', e);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <div className="flex min-h-dvh bg-gray-50">
@@ -147,14 +198,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-6 shadow-sm">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-6 shadow-sm relative z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden text-brown-muted hover:text-brown"
           >
             <Menu size={24} />
           </button>
-          
+
           <div className="ml-auto flex items-center gap-3 md:gap-5">
             <Link
               href="/"
@@ -164,6 +215,92 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <ExternalLink size={14} />
               <span className="hidden sm:inline">View Store</span>
             </Link>
+
+            {/* Notification Bell */}
+            <div className="relative" ref={notifRef}>
+              <button
+                type="button"
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative p-2 text-gray-500 hover:text-[#B78332] transition-colors rounded-full hover:bg-gray-100"
+                aria-label="Notifications"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-rose-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown Panel */}
+              {notifOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#E8DDCA] rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-3.5 bg-[#FAF8F3] border-b border-[#E8DDCA] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-[#3A2118] uppercase tracking-wider">
+                        Store Notifications
+                      </span>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-[#B78332] text-white px-1.5 py-0.5 rounded-full font-semibold">
+                          {unreadCount} new
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        className="text-[11px] text-[#B78332] hover:underline font-semibold flex items-center gap-1"
+                      >
+                        <Check size={12} />
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-gray-400">
+                        No notifications recorded yet.
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={cn(
+                            'p-3.5 hover:bg-gray-50 transition-colors text-left',
+                            !n.isRead ? 'bg-amber-50/40' : 'bg-white'
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-xs font-bold text-[#3A2118] leading-snug">
+                              {n.title}
+                            </span>
+                            {!n.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-[#B78332] shrink-0 mt-1" />
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 whitespace-pre-line leading-relaxed">
+                            {n.body}
+                          </p>
+                          <div className="flex items-center justify-between mt-2 pt-1 text-[10px] text-gray-400">
+                            <span>{new Date(n.createdAt).toLocaleString('en-IN')}</span>
+                            {n.href && (
+                              <Link
+                                href={n.href}
+                                onClick={() => setNotifOpen(false)}
+                                className="text-[#B78332] font-semibold hover:underline"
+                              >
+                                View Details →
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="h-4 w-px bg-sand-deep" />
 

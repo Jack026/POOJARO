@@ -1,8 +1,9 @@
 import { getCustomerSession } from '@/lib/auth/guards';
 import { getStore } from '@/lib/data';
 import Link from 'next/link';
-import { Package, Heart, Edit2 } from 'lucide-react';
+import { Package, Heart } from 'lucide-react';
 import { Price } from '@/components/ui/Price';
+import { AccountProfileEditor } from './AccountProfileEditor';
 
 export default async function AccountPage() {
   const session = await getCustomerSession();
@@ -26,9 +27,7 @@ export default async function AccountPage() {
         <div className="border border-sand-deep/50 rounded-xl p-6 bg-sand-soft/10 relative">
           <div className="flex justify-between items-start mb-4">
             <h2 className="font-display text-xl text-brown font-medium">Personal Details</h2>
-            <button className="text-gold hover:text-gold-deep transition-colors p-2 -mr-2 -mt-2">
-              <Edit2 className="w-4 h-4" />
-            </button>
+            <AccountProfileEditor user={user} />
           </div>
           <div className="space-y-3 text-sm">
             <div>
@@ -76,7 +75,7 @@ export default async function AccountPage() {
         
         {ordersList.items.length === 0 ? (
           <div className="border border-sand-deep/30 rounded-xl p-8 text-center bg-sand-soft/5">
-            <p className="text-brown-muted mb-4">You haven't placed any orders yet.</p>
+            <p className="text-brown-muted mb-4">You haven&apos;t placed any orders yet.</p>
             <Link href="/shop" className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-gold text-white font-medium hover:bg-gold-deep transition-colors text-sm">
               Start Shopping
             </Link>

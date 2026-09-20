@@ -12,6 +12,7 @@ import { CustomCursor } from '@/components/layout/CustomCursor';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { QuickViewModal } from '@/components/quick-view/QuickViewModal';
 import { Toaster } from '@/components/ui/Toaster';
+import { AdminShortcutListener } from '@/components/admin/AdminShortcutListener';
 
 /**
  * Storefront shell. Everything customer-facing lives under this route group, so
@@ -52,6 +53,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <CartDrawer />
       <QuickViewModal />
       <WhatsAppButton settings={settings} />
+      <AdminShortcutListener />
       <Toaster />
 
       {/* Site-wide structured data (§47). Page-level Product and Breadcrumb

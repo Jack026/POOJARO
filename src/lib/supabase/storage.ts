@@ -139,3 +139,178 @@ export async function uploadMediaToSupabase({
   };
 }
 
+// ---------------------------------------------------------------------------
+// Bucket Management & File Operations
+// ---------------------------------------------------------------------------
+
+export interface SupabaseBucketInfo {
+  id: string;
+  name: string;
+  public: boolean;
+  fileSizeLimit?: number | null;
+  allowedMimeTypes?: string[] | null;
+  createdAt: string;
+  updatedAt: string;
+  isAnalytics?: boolean;
+}
+
+export async function listSupabaseBuckets(): Promise<SupabaseBucketInfo[]> {
+  const adminClient = getSupabaseAdminClient();
+  const { data, error } = await adminClient.storage.listBuckets();
+  if (error) {
+    throw new Error(`Failed to list buckets: ${error.message}`);
+  }
+  return (data || []).map((b) => ({
+    id: b.id,
+    name: b.name,
+    public: b.public,
+    fileSizeLimit: b.file_size_limit,
+    allowedMimeTypes: b.allowed_mime_types,
+    createdAt: b.created_at,
+    updatedAt: b.updated_at,
+    isAnalytics:
+      b.id.includes('analytic') ||
+      b.name.includes('analytic') ||
+      b.id.includes('lake') ||
+      b.id.includes('log'),
+  }));
+}
+
+export async function createSupabaseBucket({
+  id,
+  isPublic = true,
+  isAnalytics = false,
+  fileSizeLimit = 10 * 1024 * 1024,
+  allowedMimeTypes,
+}: {
+  id: string;
+  isPublic?: boolean;
+  isAnalytics?: boolean;
+  fileSizeLimit?: number;
+  allowedMimeTypes?: string[];
+}): Promise<{ ok: boolean; error?: string }> {
+  const adminClient = getSupabaseAdminClient();
+  const cleanId = id.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  const { error } = await adminClient.storage.createBucket(cleanId, {
+    public: isPublic,
+    fileSizeLimit,
+    allowedMimeTypes:
+      allowedMimeTypes ||
+      (isAnalytics ? undefined : ['image/jpeg', 'image/png', 'image/webp', 'image/avif']),
+  });
+
+  if (error && !error.message.includes('already exists')) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
+export interface BucketFile {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  createdAt: string;
+  updatedAt: string;
+  publicUrl: string;
+}
+
+export async function listBucketFiles(
+  bucket: string,
+  folder = '',
+  limit = 100,
+  offset = 0,
+  search?: string
+): Promise<{ files: BucketFile[]; total: number }> {
+  const adminClient = getSupabaseAdminClient();
+  const { data, error } = await adminClient.storage.from(bucket).list(folder, {
+    limit,
+    offset,
+    search,
+    sortBy: { column: 'created_at', order: 'desc' },
+  });
+
+  if (error) {
+    throw new Error(`Failed to list files in ${bucket}: ${error.message}`);
+  }
+
+  const files: BucketFile[] = (data || [])
+    .filter((f) => f.name !== '.emptyFolderPlaceholder')
+    .map((f) => {
+      const filePath = folder ? `${folder}/${f.name}` : f.name;
+      const { data: urlData } = adminClient.storage.from(bucket).getPublicUrl(filePath);
+      return {
+        id: f.id || f.name,
+        name: f.name,
+        size: f.metadata?.size || 0,
+        mimeType: f.metadata?.mimetype || 'application/octet-stream',
+        createdAt: f.created_at || new Date().toISOString(),
+        updatedAt: f.updated_at || new Date().toISOString(),
+        publicUrl: urlData.publicUrl,
+      };
+    });
+
+  return { files, total: files.length };
+}
+
+export async function deleteBucketFile(
+  bucket: string,
+  path: string
+): Promise<{ ok: boolean; error?: string }> {
+  const adminClient = getSupabaseAdminClient();
+  const { error } = await adminClient.storage.from(bucket).remove([path]);
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
+export async function exportEventsToAnalyticsBucket(): Promise<{
+  ok: boolean;
+  count: number;
+  error?: string;
+  fileUrl?: string;
+}> {
+  const adminClient = getSupabaseAdminClient();
+  const bucketId = 'poojaro-analytics';
+
+  // Ensure analytics bucket exists
+  await adminClient.storage.createBucket(bucketId, {
+    public: false,
+    fileSizeLimit: 50 * 1024 * 1024,
+  });
+
+  // Query events from PostgreSQL analytics_events table
+  const { data: events, error } = await adminClient
+    .from('analytics_events')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(5000);
+
+  if (error) {
+    return { ok: false, count: 0, error: error.message };
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const fileName = `events/events-dump-${timestamp}.json`;
+  const jsonBuffer = Buffer.from(JSON.stringify(events || [], null, 2), 'utf-8');
+
+  const { data: uploadData, error: uploadError } = await adminClient.storage
+    .from(bucketId)
+    .upload(fileName, jsonBuffer, {
+      contentType: 'application/json',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    return { ok: false, count: 0, error: uploadError.message };
+  }
+
+  return {
+    ok: true,
+    count: (events || []).length,
+    fileUrl: uploadData?.path,
+  };
+}
+
+

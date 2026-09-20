@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-brown">Dashboard</h1>
-          <p className="text-sm text-brown-muted">Overview of your store's performance in the last 30 days.</p>
+          <p className="text-sm text-brown-muted">Overview of your store&apos;s performance in the last 30 days.</p>
         </div>
 
         {/* KPI Cards */}
