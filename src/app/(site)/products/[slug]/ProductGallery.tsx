@@ -13,8 +13,8 @@ export function ProductGallery({ product }: { product: Product }) {
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
 
-  const images = product.images;
-  const current = images[active];
+  const images = Array.isArray(product.images) ? product.images : [];
+  const current = images[active] || images[0];
 
   if (!current) {
     return (
@@ -25,9 +25,11 @@ export function ProductGallery({ product }: { product: Product }) {
   }
 
   function prev() {
+    if (images.length === 0) return;
     setActive((i) => (i - 1 + images.length) % images.length);
   }
   function next() {
+    if (images.length === 0) return;
     setActive((i) => (i + 1) % images.length);
   }
 

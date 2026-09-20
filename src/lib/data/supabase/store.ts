@@ -568,10 +568,58 @@ export class SupabaseDataStore implements DataStore {
   // Products
   // -------------------------------------------------------------------------
 
+  private normaliseProduct(row: any): Product | null {
+    if (!row) return null;
+    const raw = row.raw && typeof row.raw === 'object' && Object.keys(row.raw).length > 0 ? row.raw : row;
+    if (!raw.id && !row.id) return null;
+
+    const id = raw.id || row.id;
+    const name = raw.name || row.name || 'Ritual Product';
+    const slug = raw.slug || row.slug || id;
+    const price = typeof raw.price === 'number' ? raw.price : typeof row.price === 'number' ? Math.round(row.price * 100) : 0;
+    const mrp = typeof raw.mrp === 'number' ? raw.mrp : typeof row.compare_at_price === 'number' ? Math.round(row.compare_at_price * 100) : price;
+
+    return {
+      id,
+      name,
+      slug,
+      description: raw.description || row.description || '',
+      shortDescription: raw.shortDescription || row.subtitle || '',
+      price,
+      mrp,
+      images: Array.isArray(raw.images) ? raw.images : Array.isArray(row.images) ? row.images : [],
+      categoryId: raw.categoryId || row.category_id || '',
+      categoryName: raw.categoryName || '',
+      occasionIds: Array.isArray(raw.occasionIds) ? raw.occasionIds : row.occasion_id ? [row.occasion_id] : [],
+      festivalIds: Array.isArray(raw.festivalIds) ? raw.festivalIds : row.festival_id ? [row.festival_id] : [],
+      contents: Array.isArray(raw.contents) ? raw.contents : Array.isArray(row.kit_items) ? row.kit_items : [],
+      variants: Array.isArray(raw.variants) ? raw.variants : Array.isArray(row.variants) ? row.variants : [],
+      stock: typeof raw.stock === 'number' ? raw.stock : typeof row.stock === 'number' ? row.stock : 0,
+      lowStockThreshold: typeof raw.lowStockThreshold === 'number' ? raw.lowStockThreshold : 5,
+      sku: raw.sku || row.sku || id,
+      status: raw.status || row.status || 'published',
+      isFeatured: Boolean(raw.isFeatured ?? row.is_featured),
+      isKit: Boolean(raw.isKit ?? row.is_kit),
+      tags: Array.isArray(raw.tags) ? raw.tags : [],
+      keywords: Array.isArray(raw.keywords) ? raw.keywords : [],
+      rating: typeof raw.rating === 'number' ? raw.rating : 5,
+      reviewCount: typeof raw.reviewCount === 'number' ? raw.reviewCount : 0,
+      howToPrepare: Array.isArray(raw.howToPrepare) ? raw.howToPrepare : [],
+      whoIsItFor: raw.whoIsItFor || '',
+      createdAt: raw.createdAt || row.created_at || nowIso(),
+      updatedAt: raw.updatedAt || row.updated_at || nowIso(),
+    };
+  }
+
   private async readAllProducts(): Promise<Product[]> {
-    const { data, error } = await this.client.from('products').select('raw');
-    if (error || !data) return [];
-    return data.map((d) => d.raw as Product);
+    try {
+      const { data, error } = await this.client.from('products').select('*');
+      if (error || !data) return [];
+      return data.map((d) => this.normaliseProduct(d)).filter((p): p is Product => Boolean(p));
+    } catch (err) {
+      console.warn('[supabase] readAllProducts error:', err);
+      return [];
+    }
   }
 
   async listProducts(query: ProductQuery = {}): Promise<Page<Product>> {
@@ -584,36 +632,51 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async getProductById(id: Id): Promise<Product | null> {
-    await this.ensureSeeded();
-    const { data, error } = await this.client
-      .from('products')
-      .select('raw')
-      .eq('id', id)
-      .maybeSingle();
-    if (error || !data) return null;
-    return data.raw as Product;
+    try {
+      await this.ensureSeeded();
+      const { data, error } = await this.client
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      if (error || !data) return null;
+      return this.normaliseProduct(data);
+    } catch (err) {
+      console.warn('[supabase] getProductById error:', err);
+      return null;
+    }
   }
 
   async getProductBySlug(slug: string): Promise<Product | null> {
-    await this.ensureSeeded();
-    const { data, error } = await this.client
-      .from('products')
-      .select('raw')
-      .eq('slug', slug)
-      .maybeSingle();
-    if (error || !data) return null;
-    return data.raw as Product;
+    try {
+      await this.ensureSeeded();
+      const { data, error } = await this.client
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+      if (error || !data) return null;
+      return this.normaliseProduct(data);
+    } catch (err) {
+      console.warn('[supabase] getProductBySlug error:', err);
+      return null;
+    }
   }
 
   async getProductsByIds(ids: Id[]): Promise<Product[]> {
     if (ids.length === 0) return [];
-    await this.ensureSeeded();
-    const { data, error } = await this.client
-      .from('products')
-      .select('raw')
-      .in('id', ids);
-    if (error || !data) return [];
-    return data.map((d) => d.raw as Product);
+    try {
+      await this.ensureSeeded();
+      const { data, error } = await this.client
+        .from('products')
+        .select('*')
+        .in('id', ids);
+      if (error || !data) return [];
+      return data.map((d) => this.normaliseProduct(d)).filter((p): p is Product => Boolean(p));
+    } catch (err) {
+      console.warn('[supabase] getProductsByIds error:', err);
+      return [];
+    }
   }
 
   async upsertProduct(product: Product, actor: Actor): Promise<Product> {

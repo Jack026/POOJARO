@@ -29,13 +29,15 @@ export function isPublished(product: Product): boolean {
  * Returns null for a product sold without variants.
  */
 export function defaultVariant(product: Product): ProductVariant | null {
-  if (product.variants.length === 0) return null;
-  return product.variants.find((variant) => variant.isDefault) ?? product.variants[0] ?? null;
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  if (variants.length === 0) return null;
+  return variants.find((variant) => variant.isDefault) ?? variants[0] ?? null;
 }
 
 export function findVariant(product: Product, variantId: string | null | undefined): ProductVariant | null {
   if (!variantId) return null;
-  return product.variants.find((variant) => variant.id === variantId) ?? null;
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  return variants.find((variant) => variant.id === variantId) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -50,11 +52,12 @@ export function findVariant(product: Product, variantId: string | null | undefin
  * variant once one is selected.
  */
 export function availableStock(product: Product, variant?: ProductVariant | null): number {
-  if (variant) return Math.max(0, variant.stock);
-  if (product.variants.length > 0) {
-    return product.variants.reduce((total, v) => total + Math.max(0, v.stock), 0);
+  if (variant) return Math.max(0, variant.stock ?? 0);
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  if (variants.length > 0) {
+    return variants.reduce((total, v) => total + Math.max(0, v.stock ?? 0), 0);
   }
-  return Math.max(0, product.stock);
+  return Math.max(0, product.stock ?? 0);
 }
 
 export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
@@ -62,7 +65,7 @@ export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
 export function stockState(product: Product, variant?: ProductVariant | null): StockState {
   const stock = availableStock(product, variant);
   if (stock <= 0) return 'out_of_stock';
-  return stock <= product.lowStockThreshold ? 'low_stock' : 'in_stock';
+  return stock <= (product.lowStockThreshold ?? 5) ? 'low_stock' : 'in_stock';
 }
 
 export function isPurchasable(product: Product, variant?: ProductVariant | null): boolean {
@@ -105,14 +108,15 @@ export interface ProductPricing {
 }
 
 export function productPricing(product: Product, variant?: ProductVariant | null): ProductPricing {
-  if (variant) return pricing(variant.price, variant.mrp, false);
-  if (product.variants.length > 0) {
-    const prices = product.variants.map((v) => v.price);
+  if (variant) return pricing(variant.price ?? 0, variant.mrp ?? 0, false);
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  if (variants.length > 0) {
+    const prices = variants.map((v) => v.price ?? 0);
     const lowest = Math.min(...prices);
-    const cheapest = product.variants.find((v) => v.price === lowest) ?? product.variants[0];
+    const cheapest = variants.find((v) => v.price === lowest) ?? variants[0];
     return pricing(lowest, cheapest?.mrp ?? lowest, new Set(prices).size > 1);
   }
-  return pricing(product.price, product.mrp, false);
+  return pricing(product.price ?? 0, product.mrp ?? 0, false);
 }
 
 function pricing(price: Paise, mrp: Paise, isRange: boolean): ProductPricing {
@@ -126,7 +130,7 @@ function pricing(price: Paise, mrp: Paise, isRange: boolean): ProductPricing {
 
 /** Total item count inside a kit, for "12 items inside" on a card. */
 export function contentCount(product: Product): number {
-  return product.contents.length;
+  return Array.isArray(product.contents) ? product.contents.length : 0;
 }
 
 /** URL for a product, in one place so a routing change is one edit (§47). */

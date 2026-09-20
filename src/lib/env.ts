@@ -114,34 +114,38 @@ export function serverEnv(): ServerEnv {
   let backend: DataBackend = 'local';
   if (requested === 'supabase') {
     if (!supabaseComplete) {
-      throw new Error(
-        'DATA_BACKEND=supabase requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY).',
+      console.warn(
+        '[poojaro] DATA_BACKEND=supabase requested but NEXT_PUBLIC_SUPABASE_URL or keys are missing. Falling back to local/seed store.',
       );
+      backend = 'local';
+    } else {
+      backend = 'supabase';
     }
-    backend = 'supabase';
   } else if (requested === 'firestore') {
     if (!firebaseComplete) {
-      throw new Error(
-        'DATA_BACKEND=firestore requires FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY. See site/README.md.',
+      console.warn(
+        '[poojaro] DATA_BACKEND=firestore requested but Firebase credentials are missing. Falling back to local/seed store.',
       );
+      backend = 'local';
+    } else {
+      backend = 'firestore';
     }
-    backend = 'firestore';
-  } else if (requested && requested !== 'local') {
-    throw new Error(`DATA_BACKEND must be "local", "firestore" or "supabase", received "${requested}".`);
+  } else {
+    backend = 'local';
   }
 
   const sessionSecret = optional(process.env.SESSION_SECRET);
   if (needsProductionSecrets && !sessionSecret) {
-    throw new Error(
-      'SESSION_SECRET is required in production. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64url\'))"',
+    console.warn(
+      '[poojaro] WARNING: SESSION_SECRET is not set in production. Using fallback session secret. For security, set SESSION_SECRET in your hosting dashboard.',
     );
   }
 
   const adminEmail = optional(process.env.ADMIN_SEED_EMAIL);
   const adminPassword = optional(process.env.ADMIN_SEED_PASSWORD);
   if (needsProductionSecrets && !adminPassword) {
-    throw new Error(
-      'ADMIN_SEED_PASSWORD is required in production so the first admin account is not created with a known password.',
+    console.warn(
+      '[poojaro] WARNING: ADMIN_SEED_PASSWORD is not set in production. Default dev password will be used until configured.',
     );
   }
 

@@ -39,7 +39,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   const stock = stockState(product);
   const isWishlisted = mounted ? isInWishlist(product.id) : false;
 
-  const image = product.images[0];
+  const image = product.images?.[0];
   const primaryPhotoKey = image?.url ? normalizePhotoKey(image.url) : '';
   const hasPhoto = isKnownPhoto(primaryPhotoKey);
 

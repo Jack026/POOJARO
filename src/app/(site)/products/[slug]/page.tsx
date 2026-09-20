@@ -19,80 +19,102 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const store = await getStore();
-  const [product, settings] = await Promise.all([
-    store.getProductBySlug(slug),
-    store.getSettings(),
-  ]);
+  try {
+    const { slug } = await params;
+    const store = await getStore();
+    const [product, settings] = await Promise.all([
+      store.getProductBySlug(slug).catch(() => null),
+      store.getSettings().catch(() => ({ storeName: 'POOJARO' })),
+    ]);
 
-  if (!product) return { title: 'Product not found | POOJARO' };
+    if (!product) return { title: 'Product not found | POOJARO' };
 
-  const pricing = productPricing(product);
-  const imageUrl = product.images[0]?.url;
-  const canonicalUrl = `${publicEnv.siteUrl.replace(/\/+$/, '')}/products/${product.slug}`;
-  const resolvedImageUrl = imageUrl
-    ? imageUrl.startsWith('http')
-      ? imageUrl
-      : `${publicEnv.siteUrl.replace(/\/+$/, '')}${imageUrl}`
-    : undefined;
+    const pricing = productPricing(product);
+    const imageUrl = product.images?.[0]?.url;
+    const canonicalUrl = `${publicEnv.siteUrl.replace(/\/+$/, '')}/products/${product.slug}`;
+    const resolvedImageUrl = imageUrl
+      ? imageUrl.startsWith('http')
+        ? imageUrl
+        : `${publicEnv.siteUrl.replace(/\/+$/, '')}${imageUrl}`
+      : undefined;
 
-  return {
-    title: `${product.name} — ${settings.storeName}`,
-    description: product.shortDescription || product.description.slice(0, 160),
-    alternates: { canonical: canonicalUrl },
-    openGraph: {
-      title: product.name,
-      description: product.shortDescription || product.description.slice(0, 160),
-      url: canonicalUrl,
-      siteName: settings.storeName,
-      images: resolvedImageUrl
-        ? [
-            {
-              url: resolvedImageUrl,
-              width: 1024,
-              height: 1024,
-              alt: product.images[0]?.alt || product.name,
-            },
-          ]
-        : [],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: product.name,
-      description: product.shortDescription || product.description.slice(0, 160),
-      images: resolvedImageUrl ? [resolvedImageUrl] : [],
-    },
-    other: {
-      'product:price:amount': String(pricing.price / 100),
-      'product:price:currency': 'INR',
-    },
-  };
+    return {
+      title: `${product.name} — ${settings.storeName}`,
+      description: product.shortDescription || (product.description || '').slice(0, 160),
+      alternates: { canonical: canonicalUrl },
+      openGraph: {
+        title: product.name,
+        description: product.shortDescription || (product.description || '').slice(0, 160),
+        url: canonicalUrl,
+        siteName: settings.storeName,
+        images: resolvedImageUrl
+          ? [
+              {
+                url: resolvedImageUrl,
+                width: 1024,
+                height: 1024,
+                alt: product.images?.[0]?.alt || product.name,
+              },
+            ]
+          : [],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: product.name,
+        description: product.shortDescription || (product.description || '').slice(0, 160),
+        images: resolvedImageUrl ? [resolvedImageUrl] : [],
+      },
+      other: {
+        'product:price:amount': String(pricing.price / 100),
+        'product:price:currency': 'INR',
+      },
+    };
+  } catch (err) {
+    console.error('[generateMetadata] Error creating product metadata:', err);
+    return { title: 'Puja Kit | POOJARO' };
+  }
 }
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const store = await getStore();
-  const product = await store.getProductBySlug(slug);
+  let product;
+  let reviews = [];
+  let related = [];
+  let settings;
 
-  if (!product || product.status !== 'published') notFound();
+  try {
+    const store = await getStore();
+    product = await store.getProductBySlug(slug);
 
-  // Reviews, related products, and store settings in parallel
-  const [reviews, relatedResult, settings] = await Promise.all([
-    store.listReviews(product.id, 'published'),
-    store.listProducts({
-      isKit: product.isKit || undefined,
-      status: 'published',
-      limit: 4,
-    }),
-    store.getSettings(),
-  ]);
+    if (!product || product.status !== 'published') {
+      notFound();
+    }
 
-  const related = relatedResult.items.filter((p) => p.id !== product.id).slice(0, 4);
+    // Reviews, related products, and store settings in parallel with resilient fallbacks
+    const [reviewsData, relatedResult, settingsData] = await Promise.all([
+      store.listReviews(product.id, 'published').catch(() => []),
+      store.listProducts({
+        isKit: product.isKit || undefined,
+        status: 'published',
+        limit: 4,
+      }).catch(() => ({ items: [], total: 0, page: 1, limit: 4, hasMore: false })),
+      store.getSettings().catch(() => ({ storeName: 'POOJARO' })),
+    ]);
+
+    reviews = reviewsData;
+    related = (relatedResult?.items || []).filter((p) => p.id !== product!.id).slice(0, 4);
+    settings = settingsData;
+  } catch (err: any) {
+    if (err?.message?.includes('NEXT_NOT_FOUND') || err?.digest?.includes('NEXT_NOT_FOUND')) {
+      throw err;
+    }
+    console.error('[ProductPage] Error rendering product:', err);
+    notFound();
+  }
 
   // Validated Schema.org structured data
-  const pSchema = productSchema(product, settings);
+  const pSchema = productSchema(product, settings as any);
   const bSchema = breadcrumbSchema([
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/shop' },
@@ -151,7 +173,7 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           {/* Kit contents (Visual "What's Inside" list) */}
-          {product.isKit && product.contents.length > 0 && (
+          {product.isKit && (product.contents?.length ?? 0) > 0 && (
             <div className="mb-12">
               <KitContents contents={product.contents} />
             </div>

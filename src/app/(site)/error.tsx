@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { NetworkError } from '@/components/ui/EmptyState';
 import { buttonClasses } from '@/components/ui/button-styles';
 
-export default function GlobalError({
+export default function SiteError({
   error,
   reset,
 }: {
@@ -13,17 +13,20 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('POOJARO route error:', error);
+    console.error('[POOJARO Site] Render error:', error);
   }, [error]);
 
   return (
-    <main id="main" className="container-page py-16 sm:py-24">
+    <div className="container-page py-16 sm:py-24">
       <NetworkError onRetry={reset} />
-      <div className="mt-4 flex justify-center">
+      <div className="mt-4 flex justify-center gap-3">
         <Link href="/shop" className={buttonClasses({ variant: 'secondary' })}>
-          Browse All Puja Kits
+          Explore Puja Kits
+        </Link>
+        <Link href="/" className={buttonClasses({ variant: 'ghost' })}>
+          Return Home
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

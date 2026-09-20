@@ -6,6 +6,8 @@ interface ProductAccordionsProps {
 }
 
 export function ProductAccordions({ product }: ProductAccordionsProps) {
+  const howTo = Array.isArray(product.howToPrepare) ? product.howToPrepare : [];
+
   const items = [
     {
       id: 'about',
@@ -18,12 +20,12 @@ export function ProductAccordions({ product }: ProductAccordionsProps) {
         </div>
       ),
     },
-    product.howToPrepare.length > 0 && {
+    howTo.length > 0 && {
       id: 'how-to-prepare',
       title: 'How to Prepare',
       content: (
         <ol className="space-y-3">
-          {product.howToPrepare.map((step, i) => (
+          {howTo.map((step, i) => (
             <li key={i} className="flex gap-3 text-sm text-brown-soft">
               <span className="w-5 h-5 rounded-full bg-gold-wash text-brown text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">
                 {i + 1}

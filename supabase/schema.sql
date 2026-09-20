@@ -402,13 +402,13 @@ $$;
 -- 3. Indexes for Ultra-High Performance
 -- ---------------------------------------------------------------------------
 
-create index if not exists idx_products_category on public.products(category_id) where status = 'active';
+create index if not exists idx_products_category on public.products(category_id) where status in ('published', 'active');
 create index if not exists idx_products_slug on public.products(slug);
-create index if not exists idx_products_featured on public.products(is_featured) where status = 'active';
+create index if not exists idx_products_featured on public.products(is_featured) where status in ('published', 'active');
 create index if not exists idx_orders_user on public.orders(user_id);
 create index if not exists idx_orders_number on public.orders(order_number);
 create index if not exists idx_orders_status on public.orders(status);
-create index if not exists idx_reviews_product on public.reviews(product_id) where status = 'approved';
+create index if not exists idx_reviews_product on public.reviews(product_id) where status in ('published', 'approved');
 create index if not exists idx_inv_tx_target on public.inventory_transactions(target_id, target_type);
 create index if not exists idx_audit_created on public.audit_logs(created_at desc);
 
@@ -443,9 +443,9 @@ alter table public.counters enable row level security;
 -- 5. RLS POLICIES (Idempotent: drops then creates each policy)
 -- ---------------------------------------------------------------------------
 
--- Public Catalog Read Access (Active only)
+-- Public Catalog Read Access (Published & Active)
 drop policy if exists "Public can view active products" on public.products;
-create policy "Public can view active products" on public.products for select using (status = 'active' or public.is_admin());
+create policy "Public can view active products" on public.products for select using (status in ('published', 'active') or public.is_admin());
 
 drop policy if exists "Public can view active categories" on public.categories;
 create policy "Public can view active categories" on public.categories for select using (is_active = true or public.is_admin());
@@ -460,7 +460,7 @@ drop policy if exists "Public can view active banners" on public.banners;
 create policy "Public can view active banners" on public.banners for select using (is_active = true or public.is_admin());
 
 drop policy if exists "Public can view approved reviews" on public.reviews;
-create policy "Public can view approved reviews" on public.reviews for select using (status = 'approved' or public.is_admin());
+create policy "Public can view approved reviews" on public.reviews for select using (status in ('published', 'approved') or public.is_admin());
 
 drop policy if exists "Public can view active testimonials" on public.testimonials;
 create policy "Public can view active testimonials" on public.testimonials for select using (is_active = true or public.is_admin());

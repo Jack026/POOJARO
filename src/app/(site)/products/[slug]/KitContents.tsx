@@ -24,11 +24,12 @@ function iconFor(name?: string): React.ComponentType<{ className?: string }> {
 }
 
 interface KitContentsProps {
-  contents: KitContent[];
+  contents?: KitContent[];
 }
 
-export function KitContents({ contents }: KitContentsProps) {
+export function KitContents({ contents = [] }: KitContentsProps) {
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const items = Array.isArray(contents) ? contents : [];
 
   return (
     <div>
@@ -44,7 +45,7 @@ export function KitContents({ contents }: KitContentsProps) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {contents.map((item, i) => {
+        {items.map((item, i) => {
           const Icon = iconFor(item.icon);
           return (
             <motion.div

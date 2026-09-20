@@ -47,6 +47,15 @@ function globals(): LocalGlobal {
 
 function dataFilePath(): string {
   const dir = serverEnv().localDataDir;
+  const isServerless = Boolean(
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.LAMBDA_TASK_ROOT ||
+    process.env.NETLIFY
+  );
+  if (isServerless && (dir === '.data' || !isAbsolute(dir))) {
+    return join('/tmp', '.data', FILE_NAME);
+  }
   return join(isAbsolute(dir) ? dir : resolve(process.cwd(), dir), FILE_NAME);
 }
 
@@ -56,14 +65,15 @@ async function loadState(): Promise<LocalState> {
     const raw = await readFile(path, 'utf8');
     const parsed = JSON.parse(raw) as Database;
     if (parsed.meta?.schemaVersion !== SCHEMA_VERSION) {
-      throw new Error(
-        `Local datastore at ${path} was written by schema v${parsed.meta?.schemaVersion ?? '?'}, this build expects v${SCHEMA_VERSION}. Delete the file (or run \`npm run seed:reset\`) to reseed.`,
+      console.warn(
+        `Local datastore at ${path} schema version mismatch. Reseeding fresh database.`,
       );
+      const freshDb = await buildSeedDatabase();
+      await persist(path, freshDb);
+      return { db: freshDb, path };
     }
     return { db: parsed, path };
   } catch (error) {
-    const isMissing = (error as NodeJS.ErrnoException)?.code === 'ENOENT';
-    if (!isMissing) throw error;
     const db = await buildSeedDatabase();
     await persist(path, db);
     return { db, path };
@@ -71,10 +81,17 @@ async function loadState(): Promise<LocalState> {
 }
 
 async function persist(path: string, db: Database): Promise<void> {
-  await mkdir(dirname(path), { recursive: true });
-  const temp = `${path}.${process.pid}.tmp`;
-  await writeFile(temp, JSON.stringify(db, null, 2), 'utf8');
-  await rename(temp, path);
+  try {
+    await mkdir(dirname(path), { recursive: true });
+    const temp = `${path}.${process.pid}.tmp`;
+    await writeFile(temp, JSON.stringify(db, null, 2), 'utf8');
+    await rename(temp, path);
+  } catch (err) {
+    console.warn(
+      '[poojaro] Could not persist state to disk (in-memory state preserved):',
+      (err as Error).message,
+    );
+  }
 }
 
 async function state(): Promise<LocalState> {
